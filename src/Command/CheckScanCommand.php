@@ -47,10 +47,9 @@ class CheckScanCommand extends Command
         $findAndUploadCommand = FindAndUploadFilesCommand::getDefaultName();
 
         $this
-            ->setDescription('Searches given directory (by default current directory) after dependency files.')
+            ->setDescription('Checks and prints status of given upload until it finish')
             ->setHelp(
-                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list'.
-                ', please visit https://debricked.com'
+                "Make sure to use run $findAndUploadCommand before so you have an upload to check."
             )
             ->addArgument(
                 FindAndUploadFilesCommand::ARGUMENT_USERNAME,

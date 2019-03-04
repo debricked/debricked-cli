@@ -9,7 +9,7 @@ set -xe
 
 composer install
 
-bin/phpunit
+phpdbg -qrr -d memory_limit=-1 bin/phpunit --coverage-clover coverage.xml
 
 vendor/bin/phpstan analyse src/ --level=7
 

@@ -3,7 +3,11 @@
   <component name="BashSupportProjectSettings">
     <option name="globalVariables">
       <set>
+        <option value="PASSWORD" />
         <option value="TRAVIS_COMMIT_RANGE" />
+        <option value="USERNAME" />
+        <option value="password" />
+        <option value="username" />
       </set>
     </option>
   </component>

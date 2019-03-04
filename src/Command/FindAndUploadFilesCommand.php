@@ -222,7 +222,7 @@ class FindAndUploadFilesCommand extends Command
             $io->success("Successfully found and uploaded {$uploadedFilePathsString}");
             $checkScanCommand = CheckScanCommand::getDefaultName();
             $io->text(
-                "You can now execute <fg=green>bin/console $checkScanCommand your-username your-password $uploadId</> to follow the vulnerability scan"
+                "You can now execute <fg=green>bin/console $checkScanCommand your-username your-password $uploadId</> to track the vulnerability scan"
             );
         } else {
             $io->warning('Nothing to upload!');

@@ -5,6 +5,9 @@ services:
 
 before_install:
     - docker build -t php-test .
+    - touch .env.test.local
+    - echo "USERNAME=$username" >> .env.test.local
+    - echo "PASSWORD=$password" >> .env.test.local
 
 script:
-    - docker run php-test
+    - docker run php-test --env-file ./.env.test.local

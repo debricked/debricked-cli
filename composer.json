@@ -1,6 +1,26 @@
 {
     "type": "project",
     "license": "MIT",
+    "name": "debricked/cli",
+    "description": "Command Line Tool (CLI) for interacting with Debricked",
+    "keywords": [
+        "vulnerability",
+        "vulnerability-management",
+        "dependency-management"
+    ],
+    "homepage": "https://debricked.com/knowledge-base/articles/integrations/#debricked-cli",
+    "authors": [
+        {
+            "name": "Oscar Reimer",
+            "email": "oscar.reimer@debricked.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "email": "sales@debricked.com",
+        "issues": "https://github.com/debricked/debricked-cli/issues",
+        "docs": "https://debricked.com/knowledge-base/articles/integrations/#debricked-cli"
+    },
     "require": {
         "php": "^7.1.3",
         "ext-ctype": "*",

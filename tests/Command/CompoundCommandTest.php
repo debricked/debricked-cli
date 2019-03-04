@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Tests\Command;
+
+use App\Command\CompoundCommand;
+use App\Command\FindAndUploadFilesCommand;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Tester\CommandTester;
+
+/**
+ * Tests @see CompoundCommand.
+ *
+ * @author Oscar Reimer <oscar.reimer@debricked.com>
+ */
+class CompoundCommandTest extends KernelTestCase
+{
+    /**
+     * @var Command
+     */
+    private $command;
+
+    /**
+     * @var CommandTester
+     */
+    private $commandTester;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        $kernel = self::createKernel();
+        $application = new Application($kernel);
+        $this->command = $application->find(CompoundCommand::getDefaultName());
+        $this->commandTester = new CommandTester($this->command);
+    }
+
+    public function testExecute()
+    {
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            'product-name' => 'test-product',
+            'release-name' => 'test-release',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertContains('Scan completed', $output);
+    }
+}
