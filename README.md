@@ -1,4 +1,6 @@
 # debricked-cli
+![Debricked CLI in action](debricked-cli.png)
+
 Command Line Tool (CLI) for interacting with [Debricked](https://debricked.com). Supports uploading and checking your dependency files for vulnerabilities.
 
 ## Documentation
