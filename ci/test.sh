@@ -8,7 +8,7 @@ cd "${0%/*}/../"
 set -xe
 
 echo "Test that Console can self install if needed"
-rm -R vendor
+rm -Rf vendor
 bin/console about --env=test
 
 echo "Install Composer with dev dependencies"
