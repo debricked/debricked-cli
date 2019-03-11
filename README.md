@@ -1,4 +1,7 @@
 # debricked-cli
+[![Build Status](https://travis-ci.org/debricked/debricked-cli.svg?branch=master)](https://travis-ci.org/debricked/debricked-cli)
+[![Latest Stable Version](https://poser.pugx.org/debricked/cli/v/stable)](https://packagist.org/packages/debricked/cli)
+
 ![Debricked CLI in action](debricked-cli.png)
 
 Command Line Tool (CLI) for interacting with [Debricked](https://debricked.com). Supports uploading and checking your dependency files for vulnerabilities.
