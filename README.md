@@ -11,7 +11,7 @@ Head over to our [Integration documentation page](https://debricked.com/knowledg
 ### Run tests
 All contributions are greatly welcome! To help you get started we have a included a
 Dockerfile which provides a environment capable of running the whole CLI application
-and related tests. 
+and related tests.
 
 #### Prerequisites
 - [Docker](https://docs.docker.com/install/)

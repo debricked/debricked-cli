@@ -7,6 +7,11 @@ cd "${0%/*}/../"
 # expanded and before they are executed.
 set -xe
 
+echo "Test that Console can self install if needed"
+rm -R vendor
+bin/console about --env=test
+
+echo "Install Composer with dev dependencies"
 composer install
 
 phpdbg -qrr -d memory_limit=-1 bin/phpunit --coverage-clover coverage.xml

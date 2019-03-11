@@ -8,7 +8,15 @@ use Symfony\Component\Debug\Debug;
 
 set_time_limit(0);
 
-require dirname(__DIR__).'/vendor/autoload.php';
+$autoloadPath = dirname(__DIR__).'/vendor/autoload.php';
+
+// If autoload hasn't been generated, run install
+if (\file_exists($autoloadPath) === false) {
+    echo "Installing dependencies using Composer\n\n";
+    \exec(__DIR__.'/../install.sh');
+}
+
+require $autoloadPath;
 
 if (!class_exists(Application::class)) {
     throw new RuntimeException('You need to add "symfony/framework-bundle" as a Composer dependency.');
