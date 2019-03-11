@@ -12,8 +12,9 @@ $autoloadPath = dirname(__DIR__).'/vendor/autoload.php';
 
 // If autoload hasn't been generated, run install
 if (\file_exists($autoloadPath) === false) {
-    echo "Installing dependencies using Composer\n\n";
-    \exec(__DIR__.'/../install.sh');
+    $installCommand = dirname(__DIR__).'/install.sh';
+    echo "Installing dependencies using $installCommand\n\n";
+    \exec($installCommand);
 }
 
 require $autoloadPath;

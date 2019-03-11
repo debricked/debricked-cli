@@ -5,7 +5,7 @@ RUN apk add bash git
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
 && chmod +x /usr/bin/composer
 
-WORKDIR /home
+WORKDIR /
 COPY . /home
 
-ENTRYPOINT ci/test.sh
+ENTRYPOINT /home/ci/test.sh

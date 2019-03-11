@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd "${0%/*}"
+
 if ! type php > /dev/null; then
   echo "Please install PHP and try again"
   exit 1

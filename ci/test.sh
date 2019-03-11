@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 
-cd "${0%/*}/../"
-
 # -e  Exit immediately if a simple command exits with a non-zero status
 # -x  Print a trace of simple commands and their arguments after they are
 # expanded and before they are executed.
 set -xe
 
 echo "Test that Console can self install if needed"
-rm -Rf vendor
-bin/console about --env=test
+rm -Rf /home/vendor
+/home/bin/console about --env=test
+
+cd "${0%/*}/../"
+
+echo $PWD
 
 echo "Install Composer with dev dependencies"
 composer install
