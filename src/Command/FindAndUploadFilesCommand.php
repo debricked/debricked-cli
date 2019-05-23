@@ -93,7 +93,7 @@ class FindAndUploadFilesCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Set to 0 to disable recursive search - only base directory will be searched',
-                true
+                1
             )
             ->addOption(
                 self::OPTION_DIRECTORIES_TO_EXCLUDE,
