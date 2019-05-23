@@ -122,9 +122,6 @@
     "psr/log": {
         "version": "1.1.0"
     },
-    "psr/simple-cache": {
-        "version": "1.0.1"
-    },
     "ralouphie/getallheaders": {
         "version": "2.0.5"
     },
@@ -214,6 +211,9 @@
     "symfony/http-kernel": {
         "version": "v4.2.3"
     },
+    "symfony/mime": {
+        "version": "v4.3.0-beta2"
+    },
     "symfony/options-resolver": {
         "version": "v4.2.3"
     },
@@ -233,11 +233,17 @@
             "tests/.gitignore"
         ]
     },
+    "symfony/polyfill-intl-idn": {
+        "version": "v1.11.0"
+    },
     "symfony/polyfill-mbstring": {
         "version": "v1.10.0"
     },
     "symfony/polyfill-php72": {
         "version": "v1.10.0"
+    },
+    "symfony/polyfill-php73": {
+        "version": "v1.11.0"
     },
     "symfony/process": {
         "version": "v4.2.3"
