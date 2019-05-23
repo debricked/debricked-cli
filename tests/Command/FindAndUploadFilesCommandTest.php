@@ -63,6 +63,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('Successfully found and uploaded', $output);
+        $this->assertNotContains('Recursive search is disabled', $output);
     }
 
     public function testExecuteDisabledRecursiveAndDifferentBase()
@@ -102,5 +103,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertContains('Successfully found and uploaded', $output);
         $this->assertContains('csa/guzzle-bundle/composer.lock', $output);
         $this->assertContains('csa/guzzle-bundle/package-lock.json', $output);
+        $this->assertNotContains('Recursive search is disabled', $output);
     }
 }

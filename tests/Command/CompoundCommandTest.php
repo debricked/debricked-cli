@@ -49,5 +49,6 @@ class CompoundCommandTest extends KernelTestCase
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('Scan completed', $output);
+        $this->assertContains('Please visit', $output);
     }
 }
