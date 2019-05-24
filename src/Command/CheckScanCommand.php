@@ -126,7 +126,7 @@ class CheckScanCommand extends Command
         $progressBar->finish();
 
         $io->newLine(2);
-        $urlMessage = "Please visit <href={$status['detailsUrl']}>details page</> for more information.";
+        $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
         if ($status['vulnerabilitiesFound'] > 0) {
             $io->error("Scan completed, {$status['vulnerabilitiesFound']} vulnerabilities found.");
         } else {
