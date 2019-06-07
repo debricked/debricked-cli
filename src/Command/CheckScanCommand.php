@@ -109,7 +109,7 @@ class CheckScanCommand extends Command
 
                 $status = \json_decode($statusResponse->getBody(), true);
                 if (\intval($status['progress']) !== -1) {
-                    $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found");
+                    $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected)");
                 }
                 if ($statusResponse->getStatusCode() === Response::HTTP_OK) {
                     break;
@@ -128,9 +128,9 @@ class CheckScanCommand extends Command
         $io->newLine(2);
         $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
         if ($status['vulnerabilitiesFound'] > 0) {
-            $io->error("Scan completed, {$status['vulnerabilitiesFound']} vulnerabilities found.");
+            $io->error("Scan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
         } else {
-            $io->success('Scan completed, no vulnerabilities found at this moment.');
+            $io->success("Scan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
         }
         $io->text($urlMessage);
 
