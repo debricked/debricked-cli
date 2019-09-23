@@ -35,6 +35,7 @@ class FindAndUploadFilesCommand extends Command
     public const ARGUMENT_PASSWORD = 'password';
     private const ARGUMENT_PRODUCT_NAME = 'product-name';
     private const ARGUMENT_RELEASE_NAME = 'release-name';
+    private const ARGUMENT_BRANCH_NAME = 'branch-name';
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
 
@@ -55,7 +56,7 @@ class FindAndUploadFilesCommand extends Command
         $this
             ->setDescription('Searches given directory (by default current directory) after dependency files.')
             ->setHelp(
-                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list'.
+                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list' .
                 ', please visit https://debricked.com'
             )
             ->addArgument(
@@ -80,6 +81,12 @@ class FindAndUploadFilesCommand extends Command
                 self::ARGUMENT_RELEASE_NAME,
                 InputArgument::REQUIRED,
                 'Release to associate found files with',
+                null
+            )
+            ->addArgument(
+                self::ARGUMENT_BRANCH_NAME,
+                InputArgument::OPTIONAL,
+                'Branch to associate found files with',
                 null
             )
             ->addArgument(
@@ -140,7 +147,7 @@ class FindAndUploadFilesCommand extends Command
         $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getBody());
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
-        $searchDirectory = $workingDirectory.$baseDirectory;
+        $searchDirectory = $workingDirectory . $baseDirectory;
         $finder = new Finder();
         $finder->files()->in($searchDirectory);
         if (empty($directoriesToExcludeString) === false && \is_array(
@@ -170,9 +177,15 @@ class FindAndUploadFilesCommand extends Command
                 $uploadData =
                     [
                         ['name' => 'fileData', 'contents' => $file->getContents(), 'filename' => $file->getFilename()],
-                        ['name' => 'productName', 'contents' => $input->getArgument(self::ARGUMENT_PRODUCT_NAME)],
-                        ['name' => 'releaseName', 'contents' => $input->getArgument(self::ARGUMENT_RELEASE_NAME)],
+                        ['name' => 'repositoryName', 'contents' => $input->getArgument(self::ARGUMENT_PRODUCT_NAME)],
+                        ['name' => 'commitName', 'contents' => $input->getArgument(self::ARGUMENT_RELEASE_NAME)],
                     ];
+
+                $branchName = $input->getArgument(self::ARGUMENT_BRANCH_NAME);
+
+                if ($branchName !== null) {
+                    $uploadData[] = ['name' => 'branchName', 'contents' => $branchName];
+                }
 
                 if ($uploadId !== null) {
                     $uploadData[] = ['name' => 'ciUploadId', 'contents' => $uploadId];

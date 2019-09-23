@@ -43,6 +43,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => 'invalid',
             'product-name' => 'test-product',
             'release-name' => 'test-release',
+            'branch-name' => 'test-branch',
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -58,6 +59,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
             'product-name' => 'test-product',
             'release-name' => 'test-release',
+            'branch-name' => 'test-branch',
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -74,6 +76,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
             'product-name' => 'test-product',
             'release-name' => 'test-release',
+            'branch-name' => 'test-branch',
             'base-directory' => '/vendor/',
             '--recursive-file-search' => 0,
         ]);
@@ -92,6 +95,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
             'product-name' => 'test-product',
             'release-name' => 'test-release',
+            'branch-name' => 'test-branch',
             'base-directory' => '/vendor/',
             '--recursive-file-search' => true,
             '--excluded-directories' => '',
