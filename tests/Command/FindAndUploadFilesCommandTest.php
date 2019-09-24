@@ -41,8 +41,9 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => 'invalid@invalid.invalid',
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => 'invalid',
-            'product-name' => 'test-product',
-            'release-name' => 'test-release',
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'branch-name' => 'test-branch',
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -56,8 +57,25 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
-            'product-name' => 'test-product',
-            'release-name' => 'test-release',
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'branch-name' => 'test-branch',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertContains('Successfully found and uploaded', $output);
+        $this->assertNotContains('Recursive search is disabled', $output);
+    }
+
+    public function testExecuteWithoutBranch()
+    {
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -72,8 +90,9 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
-            'product-name' => 'test-product',
-            'release-name' => 'test-release',
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'branch-name' => 'test-branch',
             'base-directory' => '/vendor/',
             '--recursive-file-search' => 0,
         ]);
@@ -90,8 +109,9 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
-            'product-name' => 'test-product',
-            'release-name' => 'test-release',
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'branch-name' => 'test-branch',
             'base-directory' => '/vendor/',
             '--recursive-file-search' => true,
             '--excluded-directories' => '',
