@@ -42,8 +42,8 @@ class CompoundCommandTest extends KernelTestCase
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
-            'product-name' => 'test-product',
-            'release-name' => 'test-release',
+            'repository-name' => 'test-product',
+            'commit-name' => 'test-release',
         ]);
 
         $output = $this->commandTester->getDisplay();
