@@ -47,7 +47,7 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertContains('No upload with ID', $output);
+        $this->assertRegExp('/No\s+upload\s+with\s+ID/', $output);
     }
 
     public function testExecuteInvalidCredentials()
@@ -61,6 +61,6 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertContains('Bad credentials', $output);
+        $this->assertRegExp('/Bad\s+credentials/', $output);
     }
 }
