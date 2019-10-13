@@ -35,7 +35,7 @@ class FindAndUploadFilesCommand extends Command
     public const ARGUMENT_PASSWORD = 'password';
     private const ARGUMENT_REPOSITORY_NAME = 'repository-name';
     private const ARGUMENT_COMMIT_NAME = 'commit-name';
-    private const ARGUMENT_BRANCH_NAME = 'branch-name';
+    private const OPTION_BRANCH_NAME = 'branch-name';
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
 
@@ -84,12 +84,6 @@ class FindAndUploadFilesCommand extends Command
                 null
             )
             ->addArgument(
-                self::ARGUMENT_BRANCH_NAME,
-                InputArgument::OPTIONAL,
-                'Branch to associate found files with',
-                null
-            )
-            ->addArgument(
                 self::ARGUMENT_BASE_DIRECTORY,
                 InputArgument::OPTIONAL,
                 'The base directory (relative to current working directory) to recursively find dependency files in. Default is current working directory.',
@@ -108,6 +102,12 @@ class FindAndUploadFilesCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules"',
                 'vendor,node_modules'
+            )
+            ->addOption(
+                self::OPTION_BRANCH_NAME,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Branch to associate found files with'
             );
     }
 
@@ -181,7 +181,7 @@ class FindAndUploadFilesCommand extends Command
                         ['name' => 'commitName', 'contents' => $input->getArgument(self::ARGUMENT_COMMIT_NAME)],
                     ];
 
-                $branchName = $input->getArgument(self::ARGUMENT_BRANCH_NAME);
+                $branchName = $input->getOption(self::OPTION_BRANCH_NAME);
 
                 if (empty($branchName) === false) {
                     $uploadData[] = ['name' => 'branchName', 'contents' => $branchName];
