@@ -10,17 +10,19 @@
 
 namespace App\API;
 
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
-use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class API
 {
     /**
-     * @var ClientInterface
+     * @var HttpClientInterface
      */
     private $debrickedClient;
 
@@ -39,7 +41,7 @@ class API
      */
     private $token;
 
-    public function __construct(ClientInterface $debrickedClient, string $username, string $password)
+    public function __construct(HttpClientInterface $debrickedClient, string $username, string $password)
     {
         $this->debrickedClient = $debrickedClient;
         $this->password = $password;
@@ -58,7 +60,7 @@ class API
      *
      * @return ResponseInterface
      *
-     * @throws GuzzleException
+     * @throws TransportExceptionInterface
      */
     public function makeApiCall(
         string $method,
@@ -70,16 +72,17 @@ class API
             $response = $this->debrickedClient->request(
                 $method,
                 $uri,
-                \array_merge(
+                \array_merge_recursive(
                     [
-                        RequestOptions::HEADERS => [
+                        'headers' => [
                             'Authorization' => "Bearer {$this->token}",
                         ],
                     ],
                     $options
                 )
             );
-        } catch (GuzzleException $e) {
+            $response->getContent();
+        } catch (TransportExceptionInterface | ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
             if ($e->getCode() === SymfonyResponse::HTTP_UNAUTHORIZED && $attempt === 0) {
                 /* @noinspection PhpUnhandledExceptionInspection */
                 $this->token = $this->getNewToken();
@@ -97,7 +100,10 @@ class API
      *
      * @return string
      *
-     * @throws GuzzleException
+     * @throws TransportExceptionInterface
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      * @throws \Exception
      */
     private function getNewToken(): string
@@ -106,17 +112,16 @@ class API
             Request::METHOD_POST,
             '/api/login_check',
             [
-                RequestOptions::JSON => [
+                'json' => [
                     '_username' => $this->username,
                     '_password' => $this->password,
                 ],
             ]
         );
-
-        $tokenResponse = \json_decode($response->getBody(), true);
+        $tokenResponse = \json_decode($response->getContent(), true);
         if ($tokenResponse === null) {
             throw new \Exception(
-                'Empty response received from server when token expected. Body: '.$response->getBody()
+                'Empty response received from server when token expected. Body: '.$response->getContent()
             );
         } else {
             if (\array_key_exists('token', $tokenResponse)) {
