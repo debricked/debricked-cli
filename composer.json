@@ -26,13 +26,13 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
-        "csa/guzzle-bundle": "^3.1",
-        "symfony/console": "^4.3.0-beta",
-        "symfony/dotenv": "^4.3.0-beta",
-        "symfony/finder": "^4.3.0-beta",
+        "symfony/console": "^4.3.0",
+        "symfony/dotenv": "^4.3.0",
+        "symfony/finder": "^4.3.0",
         "symfony/flex": "^1.1",
-        "symfony/framework-bundle": "^4.3.0-beta",
-        "symfony/yaml": "^4.3.0-beta"
+        "symfony/framework-bundle": "^4.3.0",
+        "symfony/http-client": "^4.3.0",
+        "symfony/yaml": "^4.3.0"
     },
     "minimum-stability": "beta",
     "prefer-stable": true,
@@ -77,7 +77,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "^4.3.0-beta"
+            "require": "^4.3.0"
         }
     },
     "require-dev": {

@@ -15,3 +15,11 @@ framework:
     #fragments: true
     php_errors:
         log: true
+
+    http_client:
+        max_host_connections: 6
+        scoped_clients:
+            debricked.client:
+                max_redirects: 20
+                base_uri: '%env(string:DEBRICKED_API_URI)%'
+                timeout: 60

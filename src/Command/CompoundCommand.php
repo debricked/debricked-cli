@@ -48,8 +48,14 @@ class CompoundCommand extends FindAndUploadFilesCommand
 
             return 3;
         }
+
+        if (($application = $this->getApplication()) === null) {
+            $io->error('Could not get application instance');
+
+            return 5;
+        }
         /** @var string $findAndUploadCommandName */
-        $findAndUploadCommand = $this->getApplication()->find($findAndUploadCommandName);
+        $findAndUploadCommand = $application->find($findAndUploadCommandName);
         $io->section("Executing {$findAndUploadCommand->getName()}");
         $findAndUploadOutput = new CombinedOutput(
             $output->getVerbosity(),
@@ -67,7 +73,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
 
             return 4;
         }
-        $checkScanCommand = $this->getApplication()->find($checkScanCommandName);
+        $checkScanCommand = $application->find($checkScanCommandName);
         $findAndUploadOutput = $findAndUploadOutput->fetch();
         $uploadIdMatches = [];
         if (\preg_match(

@@ -55,8 +55,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
             '--branch-name' => 'test-branch',
@@ -72,8 +72,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
         ]);
@@ -88,8 +88,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
             '--branch-name' => 'test-branch',
@@ -107,12 +107,12 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
             '--branch-name' => 'test-branch',
-            'base-directory' => '/vendor/',
+            'base-directory' => '/tests/',
             '--recursive-file-search' => true,
             '--excluded-directories' => '',
         ]);
@@ -121,8 +121,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('No directories will be ignored', $output);
         $this->assertContains('Successfully found and uploaded', $output);
-        $this->assertContains('csa/guzzle-bundle/composer.lock', $output);
-        $this->assertContains('csa/guzzle-bundle/package-lock.json', $output);
+        $this->assertContains('tests/DependencyFiles/composer.lock', $output);
+        $this->assertContains('tests/DependencyFiles/package-lock.json', $output);
         $this->assertNotContains('Recursive search is disabled', $output);
     }
 }

@@ -40,8 +40,8 @@ class CompoundCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-product',
             'commit-name' => 'test-release',
         ]);
