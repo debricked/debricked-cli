@@ -104,8 +104,8 @@ class FindAndUploadFilesCommand extends Command
                 self::OPTION_DIRECTORIES_TO_EXCLUDE,
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules"',
-                'vendor,node_modules'
+                'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules,tests"',
+                'vendor,node_modules,tests'
             )
             ->addOption(
                 self::OPTION_BRANCH_NAME,

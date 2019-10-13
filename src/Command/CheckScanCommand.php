@@ -121,12 +121,12 @@ class CheckScanCommand extends Command
                 sleep(1);
             }
         } catch (TransportExceptionInterface $e) {
-            $io->error("An error occurred while getting scan status: {$e->getMessage()}");
+            $io->error("\n\nAn error occurred while getting scan status: {$e->getMessage()}");
 
             return 1;
         } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
             /* @noinspection PhpUnhandledExceptionInspection */
-            $io->error("An error occurred while getting scan status: {$e->getResponse()->getContent(false)}");
+            $io->error("\n\nAn error occurred while getting scan status: {$e->getResponse()->getContent(false)}");
 
             return 1;
         }
@@ -135,9 +135,9 @@ class CheckScanCommand extends Command
         $io->newLine(2);
         $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
         if ($status['vulnerabilitiesFound'] > 0) {
-            $io->error("Scan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
+            $io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
         } else {
-            $io->success("Scan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
+            $io->success("\n\nScan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
         }
         $io->text($urlMessage);
 
