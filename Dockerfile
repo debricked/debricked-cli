@@ -1,6 +1,7 @@
 FROM php:7.3-cli-alpine
 
-RUN apk add bash git
+RUN apk add bash git zlib-dev libzip-dev
+RUN docker-php-ext-install zip
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
 && chmod +x /usr/bin/composer

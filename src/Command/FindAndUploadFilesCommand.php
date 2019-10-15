@@ -23,6 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
+use ZipArchive;
 
 class FindAndUploadFilesCommand extends Command
 {
@@ -44,11 +45,17 @@ class FindAndUploadFilesCommand extends Command
      */
     private $debrickedClient;
 
+    /**
+     * @var array
+     */
+    private $blacklist;
+
     public function __construct(ClientInterface $debrickedClient, $name = null)
     {
         parent::__construct($name);
 
         $this->debrickedClient = $debrickedClient;
+        $this->blacklist = ['jpg', 'png', 'gif', 'tif', 'jpeg', 'bmp', 'mp3', 'mp4', 'sql', 'pdf'];
     }
 
     protected function configure()
@@ -144,7 +151,10 @@ class FindAndUploadFilesCommand extends Command
             return 1;
         }
 
-        $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getBody());
+        $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getBody(), true);
+
+        $allDependencyFileNames = $dependencyFileNames['dependencyFileNames'];
+        $requiresAllFilesDependencyFileNames = $dependencyFileNames['dependencyFileNamesRequiresAllFiles'];
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
         $searchDirectory = $workingDirectory . $baseDirectory;
@@ -166,19 +176,41 @@ class FindAndUploadFilesCommand extends Command
         $io->section(
             "Uploading dependency files to Debricked, starting from {$searchDirectory}, ignoring \"{$directoriesToExcludeString}\""
         );
+
+        $repository = $input->getArgument(self::ARGUMENT_REPOSITORY_NAME);
+        $commit = $input->getArgument(self::ARGUMENT_COMMIT_NAME);
+        $zippedRepositoryName = "{$repository}_{$commit}.zip";
+        $zip = new ZipArchive();
+        $zip->open($zippedRepositoryName, ZipArchive::CREATE);
+
         $uploadId = null;
         $uploadedFilePaths = [];
         $progressBar = new ProgressBar($output);
         $progressBar->start();
         $progressBar->setFormat(' %current% file(s) found [%bar%] %percent:3s%% %elapsed:6s% %memory:6s%');
         $this->setProgressBarStyle($progressBar);
+        $uploadAllFiles = false;
         foreach ($finder as $file) {
-            if (\in_array($fileName = $file->getFilename(), $dependencyFileNames) === true) {
+            $pathName = $file->getPathname();
+            $extension = $file->getExtension();
+            $fileName = $file->getFilename();
+            if(\in_array($extension, $this->blacklist) === false) {
+                $pathArray = explode("/", $pathName);
+                unset($pathArray[1]);
+                $pathNameWithoutSearchDir = implode("/", $pathArray);
+                $zip->addFile($pathName, $pathNameWithoutSearchDir);
+            }
+
+            if (\in_array($fileName, $allDependencyFileNames) === true) {
+                if (\in_array($fileName, $requiresAllFilesDependencyFileNames) === true) {
+                    $uploadAllFiles = true;
+                }
+
                 $uploadData =
                     [
-                        ['name' => 'fileData', 'contents' => $file->getContents(), 'filename' => $file->getFilename()],
-                        ['name' => 'repositoryName', 'contents' => $input->getArgument(self::ARGUMENT_REPOSITORY_NAME)],
-                        ['name' => 'commitName', 'contents' => $input->getArgument(self::ARGUMENT_COMMIT_NAME)],
+                        ['name' => 'fileData', 'contents' => $file->getContents(), 'filename' => $fileName],
+                        ['name' => 'repositoryName', 'contents' => $repository],
+                        ['name' => 'commitName', 'contents' => $commit],
                     ];
 
                 $branchName = $input->getOption(self::OPTION_BRANCH_NAME);
@@ -214,16 +246,31 @@ class FindAndUploadFilesCommand extends Command
         $progressBar->finish();
         $io->newLine(2);
 
+        $successfullyCreatedZip = $zip->close();
+        if ($successfullyCreatedZip === false) {
+            $io->warning("Failed to create zip file");
+        } else if ($uploadAllFiles === true) {
+            $io->success("Successfully created zip file");
+        }
+
         if ($uploadId !== null) {
+            if ($uploadAllFiles === true && $successfullyCreatedZip === true) {
+                $zipHandler = \fopen($zippedRepositoryName, 'r');
+                $requestOptions = [RequestOptions::MULTIPART => [
+                    ['name' => 'ciUploadId', 'contents' => $uploadId],
+                    ['name' => 'repositoryZip', 'contents' => $zipHandler],
+                    ['name' => 'repositoryName', 'contents' => $repository],
+                    ['name' => 'commitName', 'contents' => $commit],
+                ]];
+            } else {
+                $requestOptions = [RequestOptions::MULTIPART => [['name' => 'ciUploadId', 'contents' => $uploadId]]];
+            }
+
             try {
                 $api->makeApiCall(
                     Request::METHOD_POST,
                     '/api/1.0/open/finishes/dependencies/files/uploads',
-                    [
-                        RequestOptions::JSON => [
-                            'ciUploadId' => $uploadId,
-                        ],
-                    ]
+                    $requestOptions
                 );
             } catch (GuzzleException $e) {
                 $io->warning("Failed to conclude upload, error: {$e->getMessage()}");
@@ -239,6 +286,14 @@ class FindAndUploadFilesCommand extends Command
             );
         } else {
             $io->warning('Nothing to upload!');
+        }
+
+        if(\file_exists($zippedRepositoryName)) {
+            $result = \unlink($zippedRepositoryName);
+
+            if($result === false) {
+                $io->warning("Failed to remove zipped repository folder {$zippedRepositoryName}");
+            }
         }
 
         return 0;

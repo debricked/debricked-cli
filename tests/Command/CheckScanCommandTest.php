@@ -40,8 +40,8 @@ class CheckScanCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \strval($_SERVER['USERNAME']),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \strval($_SERVER['PASSWORD']),
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '0',
         ]);
 

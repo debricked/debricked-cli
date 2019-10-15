@@ -55,8 +55,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \strval($_SERVER['USERNAME']),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \strval($_SERVER['PASSWORD']),
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
             '--branch-name' => 'test-branch',
@@ -65,6 +65,10 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('Successfully found and uploaded', $output);
+        $this->assertContains('Successfully created zip file', $output);
+        $this->assertContains('GradleRecursive/MPChartExample/build.gradle', $output);
+        $this->assertContains('GradleRecursive/MPChartLib/build.gradle ', $output);
+        $this->assertContains('GradleRecursive/build.gradle ', $output);
         $this->assertNotContains('Recursive search is disabled', $output);
     }
 
@@ -72,8 +76,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \strval($_SERVER['USERNAME']),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \strval($_SERVER['PASSWORD']),
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
         ]);
@@ -81,6 +85,10 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('Successfully found and uploaded', $output);
+        $this->assertContains('Successfully created zip file', $output);
+        $this->assertContains('GradleRecursive/MPChartExample/build.gradle', $output);
+        $this->assertContains('GradleRecursive/MPChartLib/build.gradle ', $output);
+        $this->assertContains('GradleRecursive/build.gradle ', $output);
         $this->assertNotContains('Recursive search is disabled', $output);
     }
 
@@ -88,8 +96,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \strval($_SERVER['USERNAME']),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \strval($_SERVER['PASSWORD']),
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
             '--branch-name' => 'test-branch',
@@ -107,8 +115,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->commandTester->execute([
             'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \getenv('USERNAME'),
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \getenv('PASSWORD'),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => \strval($_SERVER['USERNAME']),
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => \strval($_SERVER['PASSWORD']),
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
             '--branch-name' => 'test-branch',
@@ -121,6 +129,10 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('No directories will be ignored', $output);
         $this->assertContains('Successfully found and uploaded', $output);
+        $this->assertNotContains('Successfully created zip file', $output);
+        $this->assertNotContains('GradleRecursive/MPChartExample/build.gradle', $output);
+        $this->assertNotContains('GradleRecursive/MPChartLib/build.gradle ', $output);
+        $this->assertNotContains('GradleRecursive/build.gradle ', $output);
         $this->assertContains('csa/guzzle-bundle/composer.lock', $output);
         $this->assertContains('csa/guzzle-bundle/package-lock.json', $output);
         $this->assertNotContains('Recursive search is disabled', $output);
