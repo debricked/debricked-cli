@@ -39,6 +39,7 @@ class FindAndUploadFilesCommand extends Command
     private const OPTION_BRANCH_NAME = 'branch-name';
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
+    private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
 
     /**
      * @var ClientInterface
@@ -63,7 +64,7 @@ class FindAndUploadFilesCommand extends Command
         $this
             ->setDescription('Searches given directory (by default current directory) after dependency files.')
             ->setHelp(
-                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list' .
+                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list'.
                 ', please visit https://debricked.com'
             )
             ->addArgument(
@@ -115,6 +116,13 @@ class FindAndUploadFilesCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Branch to associate found files with'
+            )
+            ->addOption(
+                self::OPTION_UPLOAD_ALL_FILES,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Set to 1 to upload all files.',
+                0
             );
     }
 
@@ -157,7 +165,7 @@ class FindAndUploadFilesCommand extends Command
         $requiresAllFilesDependencyFileNames = $dependencyFileNames['dependencyFileNamesRequiresAllFiles'];
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
-        $searchDirectory = $workingDirectory . $baseDirectory;
+        $searchDirectory = $workingDirectory.$baseDirectory;
         $finder = new Finder();
         $finder->files()->in($searchDirectory);
         if (empty($directoriesToExcludeString) === false && \is_array(
@@ -177,8 +185,8 @@ class FindAndUploadFilesCommand extends Command
             "Uploading dependency files to Debricked, starting from {$searchDirectory}, ignoring \"{$directoriesToExcludeString}\""
         );
 
-        $repository = $input->getArgument(self::ARGUMENT_REPOSITORY_NAME);
-        $commit = $input->getArgument(self::ARGUMENT_COMMIT_NAME);
+        $repository = \strval($input->getArgument(self::ARGUMENT_REPOSITORY_NAME));
+        $commit = \strval($input->getArgument(self::ARGUMENT_COMMIT_NAME));
         $zippedRepositoryName = "{$repository}_{$commit}.zip";
         $zip = new ZipArchive();
         $zip->open($zippedRepositoryName, ZipArchive::CREATE);
@@ -189,21 +197,24 @@ class FindAndUploadFilesCommand extends Command
         $progressBar->start();
         $progressBar->setFormat(' %current% file(s) found [%bar%] %percent:3s%% %elapsed:6s% %memory:6s%');
         $this->setProgressBarStyle($progressBar);
-        $uploadAllFiles = false;
+        $uploadAllFiles = \boolval($input->getOption(self::OPTION_UPLOAD_ALL_FILES));
         foreach ($finder as $file) {
             $pathName = $file->getPathname();
             $extension = $file->getExtension();
             $fileName = $file->getFilename();
-            if(\in_array($extension, $this->blacklist) === false) {
-                $pathArray = explode("/", $pathName);
+            if (\in_array($extension, $this->blacklist) === false && $uploadAllFiles === true) {
+                $pathArray = explode('/', $pathName);
                 unset($pathArray[1]);
-                $pathNameWithoutSearchDir = implode("/", $pathArray);
+                $pathNameWithoutSearchDir = implode('/', $pathArray);
                 $zip->addFile($pathName, $pathNameWithoutSearchDir);
             }
 
             if (\in_array($fileName, $allDependencyFileNames) === true) {
-                if (\in_array($fileName, $requiresAllFilesDependencyFileNames) === true) {
-                    $uploadAllFiles = true;
+                if (\in_array($fileName, $requiresAllFilesDependencyFileNames) === true && empty($uploadAllFiles) === true) {
+                    $io->warning("Skipping {$pathName}");
+                    $io->warning('Found files which requires that all files needs to be uploaded.');
+
+                    continue;
                 }
 
                 $uploadData =
@@ -247,10 +258,10 @@ class FindAndUploadFilesCommand extends Command
         $io->newLine(2);
 
         $successfullyCreatedZip = $zip->close();
-        if ($successfullyCreatedZip === false) {
-            $io->warning("Failed to create zip file");
-        } else if ($uploadAllFiles === true) {
-            $io->success("Successfully created zip file");
+        if ($successfullyCreatedZip === false && $uploadAllFiles === true) {
+            $io->warning('Failed to create zip file');
+        } elseif ($uploadAllFiles === true) {
+            $io->success('Successfully created zip file');
         }
 
         if ($uploadId !== null) {
@@ -288,10 +299,10 @@ class FindAndUploadFilesCommand extends Command
             $io->warning('Nothing to upload!');
         }
 
-        if(\file_exists($zippedRepositoryName)) {
+        if (\file_exists($zippedRepositoryName)) {
             $result = \unlink($zippedRepositoryName);
 
-            if($result === false) {
+            if ($result === false) {
                 $io->warning("Failed to remove zipped repository folder {$zippedRepositoryName}");
             }
         }
