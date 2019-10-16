@@ -11,9 +11,6 @@
 namespace App\Command;
 
 use App\API\API;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,6 +18,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CheckScanCommand extends Command
 {
@@ -31,11 +33,11 @@ class CheckScanCommand extends Command
     public const ARGUMENT_UPLOAD_ID = 'upload-id';
 
     /**
-     * @var ClientInterface
+     * @var HttpClientInterface
      */
     private $debrickedClient;
 
-    public function __construct(ClientInterface $debrickedClient, $name = null)
+    public function __construct(HttpClientInterface $debrickedClient, $name = null)
     {
         parent::__construct($name);
 
@@ -101,13 +103,13 @@ class CheckScanCommand extends Command
                     Request::METHOD_GET,
                     '/api/1.0/open/ci/upload/status',
                     [
-                        RequestOptions::QUERY => [
+                        'query' => [
                             'ciUploadId' => $uploadId,
                         ],
                     ]
                 );
 
-                $status = \json_decode($statusResponse->getBody(), true);
+                $status = \json_decode($statusResponse->getContent(), true);
                 if (\intval($status['progress']) !== -1) {
                     $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected)");
                 }
@@ -118,8 +120,13 @@ class CheckScanCommand extends Command
                 $progressBar->setProgress($status['progress']);
                 sleep(1);
             }
-        } catch (GuzzleException $e) {
-            $io->error("An error occurred while getting scan status: {$e->getMessage()}");
+        } catch (TransportExceptionInterface $e) {
+            $io->error("\n\nAn error occurred while getting scan status: {$e->getMessage()}");
+
+            return 1;
+        } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+            /* @noinspection PhpUnhandledExceptionInspection */
+            $io->error("\n\nAn error occurred while getting scan status: {$e->getResponse()->getContent(false)}");
 
             return 1;
         }
@@ -128,9 +135,9 @@ class CheckScanCommand extends Command
         $io->newLine(2);
         $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
         if ($status['vulnerabilitiesFound'] > 0) {
-            $io->error("Scan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
+            $io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
         } else {
-            $io->success("Scan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
+            $io->success("\n\nScan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
         }
         $io->text($urlMessage);
 

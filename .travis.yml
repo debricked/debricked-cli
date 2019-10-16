@@ -5,8 +5,8 @@ services:
 
 before_install:
     - touch .env.test.local
-    - echo "USERNAME=$username" >> .env.test.local
-    - echo "PASSWORD=$password" >> .env.test.local
+    - echo "DEBRICKED_USERNAME=$username" >> .env.test.local
+    - echo "DEBRICKED_PASSWORD=$password" >> .env.test.local
     - docker build -t php-test .
 
 script:

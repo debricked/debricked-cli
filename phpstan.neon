@@ -8,4 +8,4 @@ parameters:
     symfony:
         container_xml_path: '%rootDir%/../../../var/cache/dev/srcApp_KernelDevDebugContainer.xml'
     ignoreErrors:
-        - '#GuzzleException is not subtype of Throwable#'
+        - '#constructor expects array<array|string|Symfony#' # Ignore error regarding FormDataPart constructor

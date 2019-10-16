@@ -11,9 +11,6 @@
 namespace App\Command;
 
 use App\API\API;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,6 +20,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use ZipArchive;
 
 class FindAndUploadFilesCommand extends Command
@@ -42,7 +46,7 @@ class FindAndUploadFilesCommand extends Command
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
 
     /**
-     * @var ClientInterface
+     * @var HttpClientInterface
      */
     private $debrickedClient;
 
@@ -51,7 +55,7 @@ class FindAndUploadFilesCommand extends Command
      */
     private $blacklist;
 
-    public function __construct(ClientInterface $debrickedClient, $name = null)
+    public function __construct(HttpClientInterface $debrickedClient, $name = null)
     {
         parent::__construct($name);
 
@@ -109,7 +113,7 @@ class FindAndUploadFilesCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules"',
-                'vendor,node_modules'
+                'vendor,node_modules,tests'
             )
             ->addOption(
                 self::OPTION_BRANCH_NAME,
@@ -148,13 +152,22 @@ class FindAndUploadFilesCommand extends Command
         $baseDirectory = $input->getArgument(self::ARGUMENT_BASE_DIRECTORY);
 
         $io->section('Getting supported dependency file names from Debricked');
+        $dependencyFileNames = [];
         try {
             $dependencyFileNamesResponse = $api->makeApiCall(
                 Request::METHOD_GET,
                 '/api/1.0/open/supported/dependency/files'
             );
-        } catch (GuzzleException $e) {
+            foreach (\json_decode($dependencyFileNamesResponse->getContent()) as $dependencyFileName) {
+                $dependencyFileNames[$dependencyFileName] = '';
+            }
+        } catch (TransportExceptionInterface $e) {
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
+
+            return 1;
+        } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+            /* @noinspection PhpUnhandledExceptionInspection */
+            $io->error("Failed to get supported dependency file names: {$e->getResponse()->getContent(false)}");
 
             return 1;
         }
@@ -209,7 +222,7 @@ class FindAndUploadFilesCommand extends Command
                 $zip->addFile($pathName, $pathNameWithoutSearchDir);
             }
 
-            if (\in_array($fileName, $allDependencyFileNames) === true) {
+            if (\array_key_exists($fileName, $allDependencyFileNames) === true) {
                 if (\in_array($fileName, $requiresAllFilesDependencyFileNames) === true && empty($uploadAllFiles) === true) {
                     $io->warning("Skipping {$pathName}");
                     $io->warning('Found files which requires that all files needs to be uploaded.');
@@ -217,37 +230,45 @@ class FindAndUploadFilesCommand extends Command
                     continue;
                 }
 
-                $uploadData =
+                $formFields =
                     [
-                        ['name' => 'fileData', 'contents' => $file->getContents(), 'filename' => $fileName],
-                        ['name' => 'repositoryName', 'contents' => $repository],
-                        ['name' => 'commitName', 'contents' => $commit],
+                        'repositoryName' => $repository,
+                        'commitName' => $commit,
                     ];
 
                 $branchName = $input->getOption(self::OPTION_BRANCH_NAME);
 
                 if (empty($branchName) === false) {
-                    $uploadData[] = ['name' => 'branchName', 'contents' => $branchName];
+                    $formFields['branchName'] = $branchName;
                 }
 
                 if ($uploadId !== null) {
-                    $uploadData[] = ['name' => 'ciUploadId', 'contents' => $uploadId];
+                    $formFields['ciUploadId'] = \strval($uploadId);
                 }
 
+                $formFields['fileData'] = DataPart::fromPath($file->getPathname());
+                $formData = new FormDataPart($formFields);
+                $headers = $formData->getPreparedHeaders()->toArray();
+                $body = $formData->bodyToString();
                 try {
                     $uploadResponse = $api->makeApiCall(
                         Request::METHOD_POST,
                         '/api/1.0/open/uploads/dependencies/files',
                         [
-                            RequestOptions::MULTIPART => $uploadData,
+                            'headers' => $headers,
+                            'body' => $body,
                         ]
                     );
-                } catch (GuzzleException $e) {
+
+                    $uploadContent = \json_decode($uploadResponse->getContent(), true);
+                } catch (TransportExceptionInterface $e) {
                     $io->warning("Failed to upload {$fileName}, error: {$e->getMessage()}");
                     continue;
+                } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+                    /* @noinspection PhpUnhandledExceptionInspection */
+                    $io->warning("Failed to upload {$fileName}, error: {$e->getResponse()->getContent(false)}");
+                    continue;
                 }
-
-                $uploadContent = \json_decode($uploadResponse->getBody(), true);
 
                 $uploadId = $uploadContent['ciUploadId'];
                 $uploadedFilePaths[] = $file->getPathname();
@@ -278,12 +299,17 @@ class FindAndUploadFilesCommand extends Command
             }
 
             try {
-                $api->makeApiCall(
+                $response = $api->makeApiCall(
                     Request::METHOD_POST,
                     '/api/1.0/open/finishes/dependencies/files/uploads',
-                    $requestOptions
+                    [
+                        'json' => [
+                            'ciUploadId' => $uploadId,
+                        ],
+                    ]
                 );
-            } catch (GuzzleException $e) {
+                $response->getContent();
+            } catch (TransportExceptionInterface | ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
                 $io->warning("Failed to conclude upload, error: {$e->getMessage()}");
 
                 return 2;

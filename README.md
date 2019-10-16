@@ -22,8 +22,8 @@ and related tests.
 #### Configure and run test environment
 1. Create a .env.test.local file in the root directory (alongside this README) containing:
 ```text
-USERNAME=your debricked username
-PASSWORD=your debricked password
+DEBRICKED_USERNAME=your debricked username
+DEBRICKED_PASSWORD=your debricked password
 ```
 2. Run tests! You can now run the tests locally by executing `./localTest.sh` in your terminal.
 
