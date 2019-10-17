@@ -60,7 +60,7 @@ class FindAndUploadFilesCommand extends Command
         parent::__construct($name);
 
         $this->debrickedClient = $debrickedClient;
-        $this->blacklist = ['jpg', 'png', 'gif', 'tif', 'jpeg', 'bmp', 'mp3', 'mp4', 'sql', 'pdf'];
+        $this->blacklist = ['jpg' => '', 'png' => '', 'gif' => '', 'tif' => '', 'jpeg' => '', 'bmp' => '', 'mp3' => '', 'mp4' => '', 'sql' => '', 'pdf' => ''];
     }
 
     protected function configure()
@@ -112,7 +112,7 @@ class FindAndUploadFilesCommand extends Command
                 self::OPTION_DIRECTORIES_TO_EXCLUDE,
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules"',
+                'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules,tests"',
                 'vendor,node_modules,tests'
             )
             ->addOption(
@@ -159,10 +159,16 @@ class FindAndUploadFilesCommand extends Command
                 '/api/1.0/open/supported/dependency/files'
             );
 
-            $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getContent(), true);
-            $allDependencyFileNames = $dependencyFileNames['dependencyFileNames'];
-            foreach ($allDependencyFileNames as $dependencyFileName) {
+            $dependencyFileNamesResponseDecoded = \json_decode($dependencyFileNamesResponse->getContent(), true);
+
+            $dependencyFileNames = [];
+            foreach ($dependencyFileNamesResponseDecoded['dependencyFileNames'] as $dependencyFileName) {
                 $dependencyFileNames[$dependencyFileName] = '';
+            }
+
+            $dependencyFileNamesRequiresAllFiles = [];
+            foreach ($dependencyFileNamesResponseDecoded['dependencyFileNamesRequiresAllFiles'] as $dependencyFileName) {
+                $dependencyFileNamesRequiresAllFiles[$dependencyFileName] = '';
             }
         } catch (TransportExceptionInterface $e) {
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
@@ -174,8 +180,6 @@ class FindAndUploadFilesCommand extends Command
 
             return 1;
         }
-
-        $requiresAllFilesDependencyFileNames = $dependencyFileNames['dependencyFileNamesRequiresAllFiles'];
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
         $searchDirectory = $workingDirectory.$baseDirectory;
@@ -215,7 +219,7 @@ class FindAndUploadFilesCommand extends Command
             $pathName = $file->getPathname();
             $extension = $file->getExtension();
             $fileName = $file->getFilename();
-            if (\in_array($extension, $this->blacklist) === false && $uploadAllFiles === true) {
+            if (\array_key_exists($extension, $this->blacklist) === false && $uploadAllFiles === true) {
                 $pathArray = explode('/', $pathName);
                 unset($pathArray[1]);
                 $pathNameWithoutSearchDir = implode('/', $pathArray);
@@ -223,7 +227,7 @@ class FindAndUploadFilesCommand extends Command
             }
 
             if (\array_key_exists($fileName, $dependencyFileNames) === true) {
-                if (\in_array($fileName, $requiresAllFilesDependencyFileNames) === true && empty($uploadAllFiles) === true) {
+                if (\array_key_exists($fileName, $dependencyFileNamesRequiresAllFiles) === true && empty($uploadAllFiles) === true) {
                     $io->warning("Skipping {$pathName}");
                     $io->warning('Found files which requires that all files needs to be uploaded.');
 
@@ -282,7 +286,7 @@ class FindAndUploadFilesCommand extends Command
         if ($successfullyCreatedZip === false && $uploadAllFiles === true) {
             $io->warning('Failed to create zip file');
         } elseif ($uploadAllFiles === true) {
-            $io->success('Successfully created zip file');
+            $io->note('Successfully created zip file');
         }
 
         if ($uploadId !== null) {
