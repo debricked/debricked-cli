@@ -152,13 +152,16 @@ class FindAndUploadFilesCommand extends Command
         $baseDirectory = $input->getArgument(self::ARGUMENT_BASE_DIRECTORY);
 
         $io->section('Getting supported dependency file names from Debricked');
-        $dependencyFileNames = [];
+
         try {
             $dependencyFileNamesResponse = $api->makeApiCall(
                 Request::METHOD_GET,
                 '/api/1.0/open/supported/dependency/files'
             );
-            foreach (\json_decode($dependencyFileNamesResponse->getContent()) as $dependencyFileName) {
+
+            $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getContent(), true);
+            $allDependencyFileNames = $dependencyFileNames['dependencyFileNames'];
+            foreach ($allDependencyFileNames as $dependencyFileName) {
                 $dependencyFileNames[$dependencyFileName] = '';
             }
         } catch (TransportExceptionInterface $e) {
@@ -172,9 +175,6 @@ class FindAndUploadFilesCommand extends Command
             return 1;
         }
 
-        $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getBody(), true);
-
-        $allDependencyFileNames = $dependencyFileNames['dependencyFileNames'];
         $requiresAllFilesDependencyFileNames = $dependencyFileNames['dependencyFileNamesRequiresAllFiles'];
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
@@ -222,7 +222,7 @@ class FindAndUploadFilesCommand extends Command
                 $zip->addFile($pathName, $pathNameWithoutSearchDir);
             }
 
-            if (\array_key_exists($fileName, $allDependencyFileNames) === true) {
+            if (\array_key_exists($fileName, $dependencyFileNames) === true) {
                 if (\in_array($fileName, $requiresAllFilesDependencyFileNames) === true && empty($uploadAllFiles) === true) {
                     $io->warning("Skipping {$pathName}");
                     $io->warning('Found files which requires that all files needs to be uploaded.');
@@ -286,26 +286,24 @@ class FindAndUploadFilesCommand extends Command
         }
 
         if ($uploadId !== null) {
+            $formFields = ['ciUploadId' => \strval($uploadId)];
+
             if ($uploadAllFiles === true && $successfullyCreatedZip === true) {
-                $zipHandler = \fopen($zippedRepositoryName, 'r');
-                $requestOptions = [RequestOptions::MULTIPART => [
-                    ['name' => 'ciUploadId', 'contents' => $uploadId],
-                    ['name' => 'repositoryZip', 'contents' => $zipHandler],
-                    ['name' => 'repositoryName', 'contents' => $repository],
-                    ['name' => 'commitName', 'contents' => $commit],
-                ]];
-            } else {
-                $requestOptions = [RequestOptions::MULTIPART => [['name' => 'ciUploadId', 'contents' => $uploadId]]];
+                $formFields['repositoryName'] = $repository;
+                $formFields['commitName'] = $commit;
+                $formFields['repositoryZip'] = DataPart::fromPath($zippedRepositoryName);
             }
 
+            $formData = new FormDataPart($formFields);
+            $headers = $formData->getPreparedHeaders()->toArray();
+            $body = $formData->bodyToString();
             try {
                 $response = $api->makeApiCall(
                     Request::METHOD_POST,
                     '/api/1.0/open/finishes/dependencies/files/uploads',
                     [
-                        'json' => [
-                            'ciUploadId' => $uploadId,
-                        ],
+                        'headers' => $headers,
+                        'body' => $body,
                     ]
                 );
                 $response->getContent();
