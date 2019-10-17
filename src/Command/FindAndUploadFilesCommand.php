@@ -219,7 +219,7 @@ class FindAndUploadFilesCommand extends Command
             $pathName = $file->getPathname();
             $extension = $file->getExtension();
             $fileName = $file->getFilename();
-            if (\array_key_exists($extension, $this->blacklist) === false && $uploadAllFiles === true) {
+            if ($uploadAllFiles === true && \array_key_exists($extension, $this->blacklist) === false) {
                 $pathArray = explode('/', $pathName);
                 unset($pathArray[1]);
                 $pathNameWithoutSearchDir = implode('/', $pathArray);
@@ -228,8 +228,7 @@ class FindAndUploadFilesCommand extends Command
 
             if (\array_key_exists($fileName, $dependencyFileNames) === true) {
                 if (\array_key_exists($fileName, $dependencyFileNamesRequiresAllFiles) === true && empty($uploadAllFiles) === true) {
-                    $io->warning("Skipping {$pathName}");
-                    $io->warning('Found files which requires that all files needs to be uploaded.');
+                    $io->warning("Skipping {$pathName}.\n\nFound file which requires that all files needs to be uploaded. Please enable the {self::OPTION_UPLOAD_ALL_FILES} option if you want to scan this file.");
 
                     continue;
                 }

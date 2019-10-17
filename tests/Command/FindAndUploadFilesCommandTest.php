@@ -124,7 +124,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertContains('tests/DependencyFiles/composer.lock', $output);
         $this->assertContains('tests/DependencyFiles/package-lock.json', $output);
         $this->assertNotContains('Successfully created zip file', $output);
-        $this->assertContains('Found files which requires that all files needs to be uploaded.', $output);
+        $this->assertContains('Found file which requires that all files needs to be uploaded.', $output);
         $this->assertContains('Skipping', $output);
         $this->assertContains("/home/tests/Command/GradleRecursive/MPChartExample/build.gradle", $output);
         $this->assertContains('/home/tests/Command/GradleRecursive/MPChartLib/build.gradle', $output);
