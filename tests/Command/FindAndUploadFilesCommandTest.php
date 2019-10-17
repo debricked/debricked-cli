@@ -123,6 +123,36 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertContains('Successfully found and uploaded', $output);
         $this->assertContains('tests/DependencyFiles/composer.lock', $output);
         $this->assertContains('tests/DependencyFiles/package-lock.json', $output);
+        $this->assertNotContains('Successfully created zip file', $output);
+        $this->assertRegExp('/Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+/', $output);
+        $this->assertRegExp('/Skipping\s+\/home\/tests\/Command\/GradleRecursive\/MPChartExample\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+{self::OPTION_UPLOAD_ALL_FILES}\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
+        $this->assertRegExp('/Skipping\s+\/home\/tests\/Command\/GradleRecursive\/MPChartLib\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+{self::OPTION_UPLOAD_ALL_FILES}\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
+        $this->assertRegExp('/Skipping\s+\/home\/tests\/Command\/GradleRecursive\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+{self::OPTION_UPLOAD_ALL_FILES}\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
+        $this->assertNotContains('Recursive search is disabled', $output);
+    }
+
+    public function testUploadAllFiles()
+    {
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            '--branch-name' => 'test-branch',
+            '--recursive-file-search' => true,
+            '--excluded-directories' => '',
+            '--upload-all-files' => true,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertContains('No directories will be ignored', $output);
+        $this->assertContains('Successfully found and uploaded', $output);
+        $this->assertContains('Successfully created zip file', $output);
+        $this->assertContains('GradleRecursive/MPChartExample/build.gradle', $output);
+        $this->assertContains('GradleRecursive/MPChartLib/build.gradle ', $output);
+        $this->assertContains('GradleRecursive/build.gradle ', $output);
         $this->assertNotContains('Recursive search is disabled', $output);
     }
 }
