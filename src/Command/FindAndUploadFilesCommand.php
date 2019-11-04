@@ -159,17 +159,7 @@ class FindAndUploadFilesCommand extends Command
                 '/api/1.0/open/supported/dependency/files'
             );
 
-            $dependencyFileNamesResponseDecoded = \json_decode($dependencyFileNamesResponse->getContent(), true);
-
-            $dependencyFileNames = [];
-            foreach ($dependencyFileNamesResponseDecoded['dependencyFileNames'] as $dependencyFileName) {
-                $dependencyFileNames[$dependencyFileName] = '';
-            }
-
-            $dependencyFileNamesRequiresAllFiles = [];
-            foreach ($dependencyFileNamesResponseDecoded['dependencyFileNamesRequiresAllFiles'] as $dependencyFileName) {
-                $dependencyFileNamesRequiresAllFiles[$dependencyFileName] = '';
-            }
+            $dependencyFileNames = \json_decode($dependencyFileNamesResponse->getContent(), true);
         } catch (TransportExceptionInterface $e) {
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
 
@@ -226,8 +216,8 @@ class FindAndUploadFilesCommand extends Command
                 $zip->addFile($pathName, $pathNameWithoutSearchDir);
             }
 
-            if (\array_key_exists($fileName, $dependencyFileNames) === true) {
-                if (\array_key_exists($fileName, $dependencyFileNamesRequiresAllFiles) === true && empty($uploadAllFiles) === true) {
+            if (\in_array($fileName, $dependencyFileNames['dependencyFileNames']) === true) {
+                if (\in_array($fileName, $dependencyFileNames['dependencyFileNamesRequiresAllFiles']) === true && empty($uploadAllFiles) === true) {
                     $io->warning("Skipping {$pathName}.\n\nFound file which requires that all files needs to be uploaded. Please enable the {self::OPTION_UPLOAD_ALL_FILES} option if you want to scan this file.");
 
                     continue;
