@@ -40,6 +40,7 @@ class FindAndUploadFilesCommand extends Command
     public const ARGUMENT_PASSWORD = 'password';
     private const ARGUMENT_REPOSITORY_NAME = 'repository-name';
     private const ARGUMENT_COMMIT_NAME = 'commit-name';
+    private const ARGUMENT_REPOSITORY_URI = 'repository-uri';
     private const OPTION_BRANCH_NAME = 'branch-name';
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
@@ -68,7 +69,7 @@ class FindAndUploadFilesCommand extends Command
         $this
             ->setDescription('Searches given directory (by default current directory) after dependency files.')
             ->setHelp(
-                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list'.
+                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list' .
                 ', please visit https://debricked.com'
             )
             ->addArgument(
@@ -100,6 +101,12 @@ class FindAndUploadFilesCommand extends Command
                 InputArgument::OPTIONAL,
                 'The base directory (relative to current working directory) to recursively find dependency files in. Default is current working directory.',
                 ''
+            )
+            ->addArgument(
+                self::ARGUMENT_REPOSITORY_URI,
+                InputArgument::REQUIRED,
+                'The repository uri path to create the file full path',
+                null
             )
             ->addOption(
                 self::OPTION_RECURSIVE_FILE_SEARCH,
@@ -172,7 +179,7 @@ class FindAndUploadFilesCommand extends Command
         }
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
-        $searchDirectory = $workingDirectory.$baseDirectory;
+        $searchDirectory = $workingDirectory . $baseDirectory;
         $finder = new Finder();
         $finder->files()->in($searchDirectory);
         if (empty($directoriesToExcludeString) === false && \is_array(
@@ -237,6 +244,11 @@ class FindAndUploadFilesCommand extends Command
 
                 if ($uploadId !== null) {
                     $formFields['ciUploadId'] = \strval($uploadId);
+                }
+
+                if ($input->getOption(self::ARGUMENT_REPOSITORY_URI) !== null) {
+                    $fileFullPath = $input->getOption(self::ARGUMENT_REPOSITORY_URI) . "?path=%2F" . $fileName;
+                    $formFields['fileFullPath'] = $fileFullPath;
                 }
 
                 $formFields['fileData'] = DataPart::fromPath($file->getPathname());
