@@ -61,6 +61,6 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/Bad\s+credentials/', $output);
+        $this->assertRegExp('/Invalid\s+credentials./', $output);
     }
 }

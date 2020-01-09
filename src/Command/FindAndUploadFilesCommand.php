@@ -98,12 +98,6 @@ class FindAndUploadFilesCommand extends Command
                 null
             )
             ->addArgument(
-                self::ARGUMENT_BASE_DIRECTORY,
-                InputArgument::OPTIONAL,
-                'The base directory (relative to current working directory) to recursively find dependency files in. Default is current working directory.',
-                ''
-            )
-            ->addArgument(
                 self::ARGUMENT_REPOSITORY_URL,
                 InputArgument::REQUIRED,
                 'The repository uri path to create the file full path',
@@ -114,6 +108,12 @@ class FindAndUploadFilesCommand extends Command
                 InputArgument::REQUIRED,
                 'The integration name (azureDevOps, bitbucket or gitlab)',
                 null
+            )
+            ->addArgument(
+                self::ARGUMENT_BASE_DIRECTORY,
+                InputArgument::OPTIONAL,
+                'The base directory (relative to current working directory) to recursively find dependency files in. Default is current working directory.',
+                ''
             )
             ->addOption(
                 self::OPTION_RECURSIVE_FILE_SEARCH,
@@ -256,21 +256,6 @@ class FindAndUploadFilesCommand extends Command
                 $formFields['integrationName'] = $input->getArgument(self::ARGUMENT_INTEGRATION_NAME);
 
                 $formFields['repositoryUrl'] = $input->getArgument(self::ARGUMENT_REPOSITORY_URL);
-                // /** @var string $url */
-                /*if (empty($url) === false) {
-                    if (\strpos($url,"bitbucket.org/")!==false) {
-                    $fileFullPath = $url . "/" . $fileName;
-                    $formFields['fileFullPath'] = $fileFullPath;
-                    }
-                    elseif (\strpos($url,"dev.azure.com")!==false) {
-                    $fileFullPath = $url . "?path=%2F" . $fileName;
-                    $formFields['fileFullPath'] = $fileFullPath;
-                    }
-                    elseif (\strpos($url,"gitlab.")!==false) {
-                    $fileFullPath = $url . "/" . $fileName;
-                    $formFields['fileFullPath'] = $fileFullPath;
-                    }
-                }*/
 
                 $formFields['fileData'] = DataPart::fromPath($file->getPathname());
                 $formData = new FormDataPart($formFields);
