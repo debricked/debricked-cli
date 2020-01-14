@@ -44,6 +44,8 @@ class CompoundCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-product',
             'commit-name' => 'test-release',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'azureDevOps',
         ]);
 
         $output = $this->commandTester->getDisplay();
