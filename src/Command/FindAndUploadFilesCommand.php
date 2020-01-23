@@ -70,7 +70,7 @@ class FindAndUploadFilesCommand extends Command
         $this
             ->setDescription('Searches given directory (by default current directory) after dependency files.')
             ->setHelp(
-                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list' .
+                'Supported dependency formats include NPM, Yarn, Composer, pip, Ruby Gems and more. For a full list'.
                 ', please visit https://debricked.com'
             )
             ->addArgument(
@@ -186,7 +186,7 @@ class FindAndUploadFilesCommand extends Command
         }
 
         $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
-        $searchDirectory = $workingDirectory . $baseDirectory;
+        $searchDirectory = $workingDirectory.$baseDirectory;
         $finder = new Finder();
         $finder->files()->in($searchDirectory);
         if (empty($directoriesToExcludeString) === false && \is_array(
