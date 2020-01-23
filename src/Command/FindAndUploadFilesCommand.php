@@ -100,7 +100,7 @@ class FindAndUploadFilesCommand extends Command
             ->addArgument(
                 self::ARGUMENT_REPOSITORY_URL,
                 InputArgument::REQUIRED,
-                'The repository uri, to create the file full path',
+                'The repository uri, to create the link to the dependency\'s file in suggested fix.',
                 null
             )
             ->addArgument(
