@@ -253,8 +253,6 @@ class FindAndUploadFilesCommand extends Command
                     $formFields['ciUploadId'] = \strval($uploadId);
                 }
 
-                $formFields['integrationName'] = $input->getArgument(self::ARGUMENT_INTEGRATION_NAME);
-
                 $formFields['repositoryUrl'] = $input->getArgument(self::ARGUMENT_REPOSITORY_URL);
 
                 $formFields['fileData'] = DataPart::fromPath($file->getPathname());
@@ -298,6 +296,7 @@ class FindAndUploadFilesCommand extends Command
 
         if ($uploadId !== null) {
             $formFields = ['ciUploadId' => \strval($uploadId)];
+            $formFields['integrationName'] = $input->getArgument(self::ARGUMENT_INTEGRATION_NAME);
 
             if ($uploadAllFiles === true && $successfullyCreatedZip === true) {
                 $formFields['repositoryName'] = $repository;
