@@ -1,4 +1,4 @@
-FROM php:7.3-cli-alpine
+FROM php:7.2-cli-alpine
 
 RUN apk add bash git zlib-dev libzip-dev
 RUN docker-php-ext-install zip

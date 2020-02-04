@@ -53,7 +53,7 @@ class FindAndUploadFilesCommand extends Command
     private $debrickedClient;
 
     /**
-     * @var array
+     * @var array<string, string>
      */
     private $blacklist;
 
@@ -65,7 +65,7 @@ class FindAndUploadFilesCommand extends Command
         $this->blacklist = ['jpg' => '', 'png' => '', 'gif' => '', 'tif' => '', 'jpeg' => '', 'bmp' => '', 'mp3' => '', 'mp4' => '', 'sql' => '', 'pdf' => ''];
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Searches given directory (by default current directory) after dependency files.')

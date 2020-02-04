@@ -44,7 +44,7 @@ class CheckScanCommand extends Command
         $this->debrickedClient = $debrickedClient;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $findAndUploadCommand = FindAndUploadFilesCommand::getDefaultName();
 
@@ -73,7 +73,7 @@ class CheckScanCommand extends Command
             );
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $api = new API(

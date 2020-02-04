@@ -53,12 +53,10 @@ class API
     /**
      * Makes an API call to the given URI.
      *
-     * @param string $method  HTTP method
-     * @param string $uri     call URI
-     * @param array  $options request options to apply, see @GuzzleHttp\ClientInterface::request()
-     * @param int    $attempt @internal
-     *
-     * @return ResponseInterface
+     * @param string       $method  HTTP method
+     * @param string       $uri     call URI
+     * @param array<mixed> $options request options to apply
+     * @param int          $attempt @internal
      *
      * @throws TransportExceptionInterface
      */
@@ -98,8 +96,6 @@ class API
     /**
      * Returns a new token using path "/api/login_check".
      *
-     * @return string
-     *
      * @throws TransportExceptionInterface
      * @throws ClientExceptionInterface
      * @throws RedirectionExceptionInterface
@@ -120,9 +116,7 @@ class API
         );
         $tokenResponse = \json_decode($response->getContent(), true);
         if ($tokenResponse === null) {
-            throw new \Exception(
-                'Empty response received from server when token expected. Body: '.$response->getContent()
-            );
+            throw new \Exception('Empty response received from server when token expected. Body: '.$response->getContent());
         } else {
             if (\array_key_exists('token', $tokenResponse)) {
                 return $tokenResponse['token'];

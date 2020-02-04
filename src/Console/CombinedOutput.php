@@ -18,6 +18,9 @@ use Symfony\Component\Console\Output\ConsoleOutput;
  */
 class CombinedOutput extends ConsoleOutput
 {
+    /**
+     * @var string
+     */
     private $buffer = '';
 
     /**
@@ -36,7 +39,7 @@ class CombinedOutput extends ConsoleOutput
     /**
      * {@inheritdoc}
      */
-    protected function doWrite($message, $newline)
+    protected function doWrite($message, $newline): void
     {
         $this->buffer .= $message;
 

@@ -22,7 +22,7 @@
         "docs": "https://debricked.com/knowledge-base/articles/integrations/#debricked-cli"
     },
     "require": {
-        "php": "^7.1.3",
+        "php": "^7.2.5",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
@@ -41,7 +41,10 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "7.2.5"
+        }
     },
     "autoload": {
         "psr-4": {
@@ -83,9 +86,9 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.14",
-        "phpstan/phpstan": "^0.11.2",
-        "phpstan/phpstan-phpunit": "^0.11.0",
-        "phpstan/phpstan-symfony": "^0.11.1",
+        "phpstan/phpstan": "^0.12.2",
+        "phpstan/phpstan-phpunit": "^0.12.0",
+        "phpstan/phpstan-symfony": "^0.12.1",
         "symfony/phpunit-bridge": "^4.3.0",
         "symfony/test-pack": "^1.0"
     }
