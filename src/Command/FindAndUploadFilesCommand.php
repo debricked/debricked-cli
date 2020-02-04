@@ -232,7 +232,8 @@ class FindAndUploadFilesCommand extends Command
 
             if (\in_array($fileName, $dependencyFileNames['dependencyFileNames']) === true) {
                 if (\in_array($fileName, $dependencyFileNames['dependencyFileNamesRequiresAllFiles']) === true && empty($uploadAllFiles) === true) {
-                    $io->warning("Skipping {$pathName}.\n\nFound file which requires that all files needs to be uploaded. Please enable the {self::OPTION_UPLOAD_ALL_FILES} option if you want to scan this file.");
+                    $optionNameUploadAllFiles = self::OPTION_UPLOAD_ALL_FILES;
+                    $io->warning("Skipping {$pathName}.\n\nFound file which requires that all files needs to be uploaded. Please enable the {$optionNameUploadAllFiles} option if you want to scan this file.");
 
                     continue;
                 }
