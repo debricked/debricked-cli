@@ -4,8 +4,58 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c3afe5cf1fe47d98be446106f6c9b949",
+    "content-hash": "7e556b0eb3124fd40dd4e0e8bf03557c",
     "packages": [
+        {
+            "name": "debricked/shared",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/debricked/debricked-shared.git",
+                "reference": "3987d5d355bd1217c8363ecb9581db8346f7cf08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/debricked/debricked-shared/zipball/3987d5d355bd1217c8363ecb9581db8346f7cf08",
+                "reference": "3987d5d355bd1217c8363ecb9581db8346f7cf08",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2.5",
+                "symfony/http-client": "^4.3|^5.0",
+                "symfony/http-foundation": "^4.3|^5.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.14",
+                "phpstan/phpstan": "^0.12.2",
+                "phpstan/phpstan-phpunit": "^0.12.0",
+                "phpstan/phpstan-symfony": "^0.12.1",
+                "symfony/phpunit-bridge": "^4.3.0",
+                "symfony/test-pack": "^1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Debricked\\Shared\\": ""
+                },
+                "exclude-from-classmap": [
+                    "tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Oscar Reimer",
+                    "email": "oscar.reimer@debricked.com",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Contains shared components used in Debricked projects.",
+            "time": "2020-02-05T20:47:35+00:00"
+        },
         {
             "name": "psr/cache",
             "version": "1.0.1",

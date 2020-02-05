@@ -10,7 +10,7 @@
 
 namespace App\Command;
 
-use App\API\API;
+use Debricked\Shared\API\API;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
