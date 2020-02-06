@@ -208,7 +208,7 @@ class FindAndUploadFilesCommand extends Command
 
         $repository = \strval($input->getArgument(self::ARGUMENT_REPOSITORY_NAME));
         $commit = \strval($input->getArgument(self::ARGUMENT_COMMIT_NAME));
-        $zippedRepositoryName = "{$repository}_{$commit}.zip";
+        $zippedRepositoryName = \str_replace('/', '-', "{$repository}_{$commit}.zip");
         $zip = new ZipArchive();
         $zip->open($zippedRepositoryName, ZipArchive::CREATE);
 

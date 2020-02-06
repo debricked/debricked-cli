@@ -149,7 +149,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-repository',
             'commit-name' => 'test-commit',
-            'repository-url' => 'repository-url',
+            'repository-url' => 'repository/url',
             'integration-name' => 'azureDevOps',
             '--branch-name' => 'test-branch',
             '--recursive-file-search' => true,
