@@ -20,7 +20,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
 {
     protected static $defaultName = 'debricked:scan';
 
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
 

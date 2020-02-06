@@ -10,7 +10,7 @@
 
 namespace App\Command;
 
-use App\API\API;
+use Debricked\Shared\API\API;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
@@ -53,7 +53,7 @@ class FindAndUploadFilesCommand extends Command
     private $debrickedClient;
 
     /**
-     * @var array
+     * @var array<string, string>
      */
     private $blacklist;
 
@@ -65,7 +65,7 @@ class FindAndUploadFilesCommand extends Command
         $this->blacklist = ['jpg' => '', 'png' => '', 'gif' => '', 'tif' => '', 'jpeg' => '', 'bmp' => '', 'mp3' => '', 'mp4' => '', 'sql' => '', 'pdf' => ''];
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Searches given directory (by default current directory) after dependency files.')
@@ -255,8 +255,9 @@ class FindAndUploadFilesCommand extends Command
                 }
 
                 $formFields['repositoryUrl'] = $input->getArgument(self::ARGUMENT_REPOSITORY_URL);
-
                 $formFields['fileData'] = DataPart::fromPath($file->getPathname());
+                $formFields['fileRelativePath'] = $file->getRelativePath();
+
                 $formData = new FormDataPart($formFields);
                 $headers = $formData->getPreparedHeaders()->toArray();
                 $body = $formData->bodyToString();
