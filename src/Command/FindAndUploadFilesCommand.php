@@ -255,8 +255,9 @@ class FindAndUploadFilesCommand extends Command
                 }
 
                 $formFields['repositoryUrl'] = $input->getArgument(self::ARGUMENT_REPOSITORY_URL);
-
                 $formFields['fileData'] = DataPart::fromPath($file->getPathname());
+                $formFields['fileRelativePath'] = $file->getRelativePath();
+
                 $formData = new FormDataPart($formFields);
                 $headers = $formData->getPreparedHeaders()->toArray();
                 $body = $formData->bodyToString();
