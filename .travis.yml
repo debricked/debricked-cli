@@ -7,7 +7,7 @@ before_install:
     - touch .env.test.local
     - echo "DEBRICKED_USERNAME=$username" >> .env.test.local
     - echo "DEBRICKED_PASSWORD=$password" >> .env.test.local
-    - docker build -t php-test .
+    - docker build --target=test -t php-test .
 
 script:
-    - travis_wait 30 docker run php-test --env-file ./.env.test.local
+    - travis_wait 30 docker run --env-file ./.env.test.local php-test
