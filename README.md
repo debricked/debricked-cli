@@ -35,7 +35,7 @@ If you are building your CI pipeline integration, you can typically get `myrepos
 ### If you use languages that need a copy of the whole repository
 
 In most cases, such as above, the tool only needs to upload your dependency files to the service.
-However, for certain languages, you may need to upload a complete copy of the repository.
+However, [for certain languages](https://debricked.com/documentation/1.0/language-support/language-support), you may need to upload a complete copy of the repository.
 You then need to add the `--upload-all-files=true` to the command, such as in the following example.
 
 ```
