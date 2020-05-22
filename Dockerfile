@@ -14,7 +14,7 @@ COPY . /home
 FROM scratch AS test
 COPY --from=common / /
 
-ENTRYPOINT /home/ci/test.sh
+CMD /home/ci/test.sh
 
 # cli stage
 FROM scratch AS cli

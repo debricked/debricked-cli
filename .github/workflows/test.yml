@@ -1,0 +1,17 @@
+name: Test CI pipeline
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build test container
+      run: docker build --target=test -t debricked/debricked-cli-test .
+    - name: Run tests
+      run: docker run -e DEBRICKED_USERNAME="$USER" -e DEBRICKED_PASSWORD="$PASS" debricked/debricked-cli-test
+      env:
+        USER: ${{ secrets.DEBRICKED_USERNAME }}
+        PASS: ${{ secrets.DEBRICKED_PASSWORD }}
