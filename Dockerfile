@@ -10,6 +10,16 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ 
 WORKDIR /
 COPY . /home
 
+# dev stage
+FROM scratch AS dev
+COPY --from=common / /
+
+RUN rm -Rf /home/vendor && /home/bin/console about --env=test
+WORKDIR /home
+RUN composer install
+
+CMD bash
+
 # test stage
 FROM scratch AS test
 COPY --from=common / /
