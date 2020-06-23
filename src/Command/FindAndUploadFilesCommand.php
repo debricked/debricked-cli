@@ -355,7 +355,7 @@ class FindAndUploadFilesCommand extends Command
     {
         return \array_reduce(
             $arrayOfRegexes,
-            function (bool $matchExists, string $regex) use (string $stringToMatch) {
+            function ($matchExists, $regex) use ($stringToMatch) {
                 return $matchExists || \preg_match('/^'.$regex.'$/', $stringToMatch);
             },
             false);
