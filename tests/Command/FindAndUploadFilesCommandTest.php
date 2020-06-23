@@ -165,6 +165,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertContains('GradleRecursive/MPChartExample/build.gradle', $output);
         $this->assertContains('GradleRecursive/MPChartLib/build.gradle ', $output);
         $this->assertContains('GradleRecursive/build.gradle ', $output);
+        $this->assertContains('CsProj/exampleFile.csproj ', $output);
         $this->assertNotContains('Recursive search is disabled', $output);
     }
 }
