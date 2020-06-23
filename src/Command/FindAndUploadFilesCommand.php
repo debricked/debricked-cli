@@ -349,7 +349,7 @@ class FindAndUploadFilesCommand extends Command
     /**
      * Goes through an array containing regexes, returns true if at least one of the regexes matches $stringToMatch, otherwise false.
      *
-     * @param mixed[] $arrayOfRegexes
+     * @param string[] $arrayOfRegexes
      */
     private function pregMatchInArray(string $stringToMatch, array $arrayOfRegexes): bool
     {
