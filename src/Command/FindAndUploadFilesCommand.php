@@ -230,8 +230,8 @@ class FindAndUploadFilesCommand extends Command
                 $zip->addFile($pathName, $pathNameWithoutSearchDir);
             }
 
-            if (\in_array($fileName, $dependencyFileNames['dependencyFileNames']) === true) {
-                if (\in_array($fileName, $dependencyFileNames['dependencyFileNamesRequiresAllFiles']) === true && empty($uploadAllFiles) === true) {
+            if ($this->pregMatchInArray($fileName, $dependencyFileNames['dependencyFileNames']) === true) {
+                if ($this->pregMatchInArray($fileName, $dependencyFileNames['dependencyFileNamesRequiresAllFiles']) === true && empty($uploadAllFiles) === true) {
                     $optionNameUploadAllFiles = self::OPTION_UPLOAD_ALL_FILES;
                     $io->warning("Skipping {$pathName}.\n\nFound file which requires that all files needs to be uploaded. Please enable the {$optionNameUploadAllFiles} option if you want to scan this file.");
 
@@ -344,5 +344,20 @@ class FindAndUploadFilesCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Goes through an array containing regexes, returns true if at least one of the regexes matches $stringToMatch, otherwise false.
+     *
+     * @param mixed[] $arrayOfRegexes
+     */
+    private function pregMatchInArray(string $stringToMatch, array $arrayOfRegexes): bool
+    {
+        return \array_reduce(
+            $arrayOfRegexes,
+            function ($matchExists, $regex) use ($stringToMatch) {
+                return $matchExists || \preg_match('/^'.$regex.'$/', $stringToMatch);
+            },
+            false);
     }
 }
