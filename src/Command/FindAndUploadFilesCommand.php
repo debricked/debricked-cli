@@ -363,7 +363,6 @@ class FindAndUploadFilesCommand extends Command
 
         if (\file_exists($zippedRepositoryName)) {
             $keepZip = \boolval($input->getOption(self::OPTION_KEEP_ZIP));
-            $io->warning('keepZip is set to '.$keepZip);
             if (!$keepZip) {
                 $result = \unlink($zippedRepositoryName);
 
