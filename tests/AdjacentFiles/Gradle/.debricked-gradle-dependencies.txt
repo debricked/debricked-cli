@@ -1,0 +1,8 @@
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+No configurations
+
+A web-based, searchable dependency report is available by adding the --scan option.

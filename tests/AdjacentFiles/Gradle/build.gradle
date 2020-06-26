@@ -1,0 +1,23 @@
+buildscript {
+    repositories {
+        jcenter()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.4.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        google()
+    }
+}
+
+allprojects {
+	task debrickedAllDeps(type: DependencyReportTask) {
+		outputFile = file('./.debricked-gradle-dependencies.txt')
+	}
+}
