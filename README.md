@@ -42,14 +42,14 @@ You then need to add the `--upload-all-files=true` to the command, such as in th
 docker run -it --rm -v $PWD:/data debricked/debricked-cli debricked:scan --upload-all-files=true user@example.com password myrepository mycommit null cli
 ```
 
-#### Client-generated dependency trees
+#### Source-codeless scans
 
-For the languages that require a complete copy of the source code, an alternative solution can be used as well.
+For Maven and Gradle builds, that normally require a complete copy of the source code, an alternative solution can be used as well.
 This requires you to generate certain dependency tree artifacts locally, and then submit them to Debricked.
 By doing so, you can avoid submitting a complete copy of the repository to Debricked, while still getting optimal dependency results.
 However, this requires you to perform certain steps as a part of your pipeline.
 
-To learn more, [contact support](https://debricked.com/documentation/1.0/overivew/get-help) to get further instructions.
+To learn more, visit our documentation about [source-codeless scans](https://debricked.com/documentation/1.0/language-support/java#source-codeless-scans) to get further instructions.
 
 ### If you have an on-premise solution
 
