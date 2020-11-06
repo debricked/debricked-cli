@@ -71,7 +71,7 @@ docker build -t debricked/debricked-cli .
 
 ### Run tests
 All contributions are greatly welcome! To help you get started we have a included a
-Dockerfile which provides a environment capable of running the whole CLI application
+Dockerfile which provides an environment capable of running the whole CLI application
 and related tests.
 
 #### Prerequisites
@@ -84,6 +84,13 @@ DEBRICKED_USERNAME=your debricked username
 DEBRICKED_PASSWORD=your debricked password
 ```
 2. Run tests! You can now run the tests locally by executing `./localTest.sh` in your terminal.
+
+#### Configure for development in PHPStorm
+
+1. Build docker container for development using `docker build -t debricked-cli-dev --target=dev`
+2. Run `composer install` inside a started container with a volume mount to `$PWD` and a suitable `--user uid:gid` flag to install dependencies.
+3. Configure PHP storm with a remote PHP interpreter pointing to `debricked-cli-dev`, 
+
 
 ### Best practises
 We try to follow Symfony's best practises as much as possible when developing. You can read more about them here
