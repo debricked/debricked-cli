@@ -62,7 +62,7 @@ class SnippetAnalysis
         return implode($this->snippets);
     }
 
-    // The following functions are from https://github.com/scanoss/scanner.php and is licensed under the MIT license,
+    // The following functions are from https://github.com/scanoss/scanner.php and are licensed under the MIT license,
     // following a special agreement with SCANOSS. See the file LICENSE.SCANOSS for the full license.
     private function calculateWfp(string $absoluteFilename, string $relativeFilename): ?string
     {

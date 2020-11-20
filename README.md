@@ -70,7 +70,7 @@ docker build -t debricked/debricked-cli .
 ```
 
 ### Run tests
-All contributions are greatly welcome! To help you get started we have a included a
+All contributions are greatly welcome! To help you get started we have included a
 Dockerfile which provides an environment capable of running the whole CLI application
 and related tests.
 

@@ -250,7 +250,7 @@ class FindAndUploadFilesCommand extends Command
                 $zip->addFile($absolutePathname, $relativePathname);
             }
 
-            // Include it in snippet analysis (SnippetAnalysis has it's own file extension filter though).
+            // Include it in snippet analysis (SnippetAnalysis has its own file extension filter though).
             if ($snippetAnalysis !== null) {
                 $snippetAnalysis->analyseFile($absolutePathname, $relativePathname);
             }
