@@ -20,9 +20,9 @@ class SnippetAnalysis
 
     public function __construct()
     {
-        $this->ignore = ['bmp' => '', 'class' => '', 'conf' => '', 'csv' => '', 'eps' => '', 'gif' => '',
-            'gitignore' => '', 'gz' => '', 'jpeg' => '', 'jpg' => '', 'lock' => '', 'md' => '', 'mp3' => '',
-            'mp4' => '', 'pdf' => '', 'png' => '', 'rst' => '', 'sql' => '', 'tif' => '', 'zip' => '', ];
+        $this->ignore = ['ai' => '', 'apng' => '', 'avif' => '', 'bmp' => '', 'class' => '', 'conf' => '', 'csv' => '', 'dib' => '', 'eps' => '', 'gif' => '',
+            'gitignore' => '', 'gz' => '', 'heic' => '', 'heif' => '', 'jpeg' => '', 'jpg' => '', 'jpe' => '', 'jif' => '', 'jfif' => '', 'jfi' => '', 'lock' => '', 'md' => '', 'mp3' => '',
+            'mp4' => '', 'pdf' => '', 'png' => '', 'psd' => '', 'raw' => '', 'rst' => '', 'sql' => '', 'tif' => '', 'tiff' => '', 'webp' => '', 'zip' => '', ];
         $this->snippets = [];
     }
 
