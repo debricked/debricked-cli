@@ -7,7 +7,7 @@
 Command Line Tool (CLI) for interacting with [Debricked](https://debricked.com). Supports uploading and checking your dependency files for vulnerabilities.
 
 ## Documentation
-Head over to our [Integration documentation page](https://debricked.com/knowledge-base/articles/integrations/#debricked-cli) for the main source of documentation.
+Head over to our [Integration documentation page](https://debricked.com/documentation/integrations/cli.html) for the main source of documentation.
 
 To run the tool using only Docker, instead of a local install, use it as below,
 where the current directory is assumed to contain the project you wish to scan.
@@ -35,7 +35,7 @@ If you are building your CI pipeline integration, you can typically get `myrepos
 ### If you use languages that need a copy of the whole repository
 
 In most cases, such as above, the tool only needs to upload your dependency files to the service.
-However, [for certain languages](https://debricked.com/documentation/1.0/language-support/language-support), you may need to upload a complete copy of the repository.
+However, [for certain languages](https://debricked.com/documentation/language-support/), you may need to upload a complete copy of the repository.
 You then need to add the `--upload-all-files=true` to the command, such as in the following example.
 
 ```
@@ -49,7 +49,7 @@ This requires you to generate certain dependency tree artifacts locally, and the
 By doing so, you can avoid submitting a complete copy of the repository to Debricked, while still getting optimal dependency results.
 However, this requires you to perform certain steps as a part of your pipeline.
 
-To learn more, visit our documentation about [source-codeless scans](https://debricked.com/documentation/1.0/language-support/java#source-codeless-scans) to get further instructions.
+To learn more, visit our documentation about [source-codeless scans](https://debricked.com/documentation/language-support/java-kotlin.html#source-codeless-scans) to get further instructions.
 
 ### If you have an on-premise solution
 
