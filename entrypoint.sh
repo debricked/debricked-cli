@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 cd /data
-/home/bin/console "$@"
+php -d memory_limit=2048M /home/bin/console "$@"

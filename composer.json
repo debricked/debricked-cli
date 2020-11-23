@@ -90,7 +90,7 @@
         "phpstan/phpstan": "^0.12.2",
         "phpstan/phpstan-phpunit": "^0.12.0",
         "phpstan/phpstan-symfony": "^0.12.1",
-        "symfony/phpunit-bridge": "^4.3.0",
+        "symfony/phpunit-bridge": "^5.1",
         "symfony/test-pack": "^1.0"
     }
 }

@@ -83,3 +83,6 @@ fabric.properties
 /.php_cs
 /.php_cs.cache
 ###< friendsofphp/php-cs-fixer ###
+/.composer
+/.bash_history
+/.phpunit.result.cache

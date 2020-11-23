@@ -16,8 +16,8 @@ echo $PWD
 echo "Install Composer with dev dependencies"
 composer install
 
-phpdbg -qrr -d memory_limit=-1 bin/phpunit --coverage-clover coverage.xml
+phpdbg -qrr -d memory_limit=17179869184 bin/phpunit
 
-vendor/bin/phpstan analyse src/ --level=7
+php -d memory_limit=-1 vendor/bin/phpstan analyse src/ --level=7
 
 vendor/bin/php-cs-fixer fix --config=.php_cs.dist -v --dry-run --stop-on-violation --diff --using-cache=no
