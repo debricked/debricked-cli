@@ -22,7 +22,7 @@
         "docs": "https://debricked.com/knowledge-base/articles/integrations/#debricked-cli"
     },
     "require": {
-        "php": "^7.2.5",
+        "php": "^7.4.0",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
