@@ -109,11 +109,16 @@ class CheckScanCommand extends Command
                     ]
                 );
 
+                $statusCode = $statusResponse->getStatusCode();
+                if ($statusCode === Response::HTTP_CREATED) {
+                    break;
+                }
+
                 $status = \json_decode($statusResponse->getContent(), true);
                 if (\intval($status['progress']) !== -1) {
                     $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected)");
                 }
-                if ($statusResponse->getStatusCode() === Response::HTTP_OK) {
+                if ($statusCode === Response::HTTP_OK) {
                     break;
                 }
 
@@ -133,12 +138,18 @@ class CheckScanCommand extends Command
         $progressBar->finish();
 
         $io->newLine(2);
-        $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
-        if ($status['vulnerabilitiesFound'] > 0) {
-            $io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
+
+        if ($statusCode === Response::HTTP_CREATED) {
+            $urlMessage = $statusResponse->getContent();
         } else {
-            $io->success("\n\nScan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
+            $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
+            if ($status['vulnerabilitiesFound'] > 0) {
+                $io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
+            } else {
+                $io->success("\n\nScan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
+            }
         }
+
         $io->text($urlMessage);
 
         return 0;
