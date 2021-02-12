@@ -50,7 +50,7 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             LicenseReportCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::ARGUMENT_FORMAT => 'yaml',
+            '--' . LicenseReportCommand::OPTION_FORMAT => 'yaml',
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -118,7 +118,31 @@ class LicenseReportCommandTest extends KernelTestCase
         $this->assertRegExp('/Failed\s+to\s+perform\s+snippet\s+scan/', $output);
     }
 
-    public function testExecuteSuccessCsvStdout()
+    public function testExecuteWithoutSnippetsJsonStdout()
+    {
+        $this->setUpMocks([
+            new MockResponse('{"progress":0}', ['http_code' => 202]),
+            new MockResponse('{"progress":10}', ['http_code' => 202]),
+            new MockResponse('{"progress":50}', ['http_code' => 202]),
+            new MockResponse('{"progress":99}', ['http_code' => 202]),
+            new MockResponse('{"dependencyLicenses": []}', ['http_code' => 200]),
+        ]);
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
+            LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
+            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses.*/s', $output);
+    }
+
+    public function testExecuteSuccessWithSnippetsCsvStdout()
     {
         $this->setUpMocks([
             new MockResponse('{"progress":0}', ['http_code' => 202]),
@@ -134,7 +158,8 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::ARGUMENT_FORMAT => 'csv',
+            '--' . LicenseReportCommand::OPTION_FORMAT => 'csv',
+            '--' . LicenseReportCommand::OPTION_SNIPPETS => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -142,7 +167,7 @@ class LicenseReportCommandTest extends KernelTestCase
         $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*a,b,c,d/s', $output);
     }
 
-    public function testExecuteSuccessJsonStdout()
+    public function testExecuteSuccessWithSnippetsJsonStdout()
     {
         $this->setUpMocks([
             new MockResponse('{"progress":0}', ['http_code' => 202]),
@@ -158,15 +183,18 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::ARGUMENT_FORMAT => 'json',
+            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+            '--' . LicenseReportCommand::OPTION_SNIPPETS => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses/s', $output);
+        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below/', $output);
+        $this->assertRegExp('/dependencyLicenses/', $output);
+        $this->assertRegExp('/snippetLicenses/', $output);
     }
 
-    public function testExecuteSuccessJsonToFile()
+    public function testExecuteSuccessWithSnippetsJsonToFile()
     {
         $reportContent = '{"dependencyLicenses": [], "snippetLicenses":[]}';
         $outputFilename = 'test_report.json';
@@ -188,8 +216,9 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::ARGUMENT_FORMAT => 'json',
-            '--' . LicenseReportCommand::ARGUMENT_OUTPUT_FILE => $outputFilename,
+            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+            '--' . LicenseReportCommand::OPTION_OUTPUT_FILE => $outputFilename,
+            '--' . LicenseReportCommand::OPTION_SNIPPETS => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -228,8 +257,8 @@ class LicenseReportCommandTest extends KernelTestCase
                 FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
                 CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
                 LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-                '--' . LicenseReportCommand::ARGUMENT_FORMAT => 'json',
-                '--' . LicenseReportCommand::ARGUMENT_OUTPUT_FILE => $outputFilename,
+                '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+                '--' . LicenseReportCommand::OPTION_OUTPUT_FILE => $outputFilename,
             ]);
             $this->fail('Should get exception');
         } catch (\Exception $e) {

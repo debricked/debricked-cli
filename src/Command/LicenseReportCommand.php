@@ -24,6 +24,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class LicenseReportCommand extends Command
 {
@@ -31,10 +32,11 @@ class LicenseReportCommand extends Command
 
     protected static $defaultName = 'debricked:license-report';
 
-    public const ARGUMENT_FORMAT = 'format';
-    public const ARGUMENT_OUTPUT_FILE = 'output';
     public const ARGUMENT_PROFILE = 'profile';
     public const ARGUMENT_UPLOAD_ID = 'upload-id';
+    public const OPTION_FORMAT = 'format';
+    public const OPTION_OUTPUT_FILE = 'output';
+    public const OPTION_SNIPPETS = 'snippets';
 
     /**
      * @var HttpClientInterface
@@ -82,17 +84,22 @@ class LicenseReportCommand extends Command
                 null,
             )
             ->addOption(
-                self::ARGUMENT_FORMAT,
+                self::OPTION_FORMAT,
                 'f',
                 InputOption::VALUE_REQUIRED,
                 'The format of the output, either "csv" or "json"',
                 'json'
             )
             ->addOption(
-                self::ARGUMENT_OUTPUT_FILE,
+                self::OPTION_OUTPUT_FILE,
                 'o',
                 InputOption::VALUE_REQUIRED,
                 'The file to write the resulting report to. If not given, print to stdout.'
+            )
+            ->addOption(
+                self::OPTION_SNIPPETS,
+                's',
+                InputOption::VALUE_NONE,
             );
     }
 
@@ -104,10 +111,10 @@ class LicenseReportCommand extends Command
             \strval($input->getArgument(FindAndUploadFilesCommand::ARGUMENT_USERNAME)),
             \strval($input->getArgument(FindAndUploadFilesCommand::ARGUMENT_PASSWORD))
         );
-        $uploadId = strval($input->getArgument(self::ARGUMENT_UPLOAD_ID));
-        $profile = strval($input->getArgument(self::ARGUMENT_PROFILE));
-        $outputFilename = $input->getOption(self::ARGUMENT_OUTPUT_FILE);
-        $format = strval($input->getOption(self::ARGUMENT_FORMAT));
+        $uploadId = \intval($input->getArgument(self::ARGUMENT_UPLOAD_ID));
+        $profile = \strval($input->getArgument(self::ARGUMENT_PROFILE));
+        $outputFilename = $input->getOption(self::OPTION_OUTPUT_FILE);
+        $format = \strval($input->getOption(self::OPTION_FORMAT));
 
         // Validate arguments.
         if ($format !== 'json' && $format !== 'csv') {
@@ -129,7 +136,9 @@ class LicenseReportCommand extends Command
             }
         }
 
-        // Fetch license
+        $snippets = \boolval($input->getOption(self::OPTION_SNIPPETS));
+
+        // Fetch license report
         $io->section("Generating license report for ID $uploadId");
 
         $progressBar = $io->createProgressBar();
@@ -143,19 +152,7 @@ class LicenseReportCommand extends Command
 
         try {
             while (true) {
-                $statusResponse = $api->makeApiCall(
-                    Request::METHOD_GET,
-                    '/api/1.0/license/report',
-                    [
-                        'headers' => [
-                            'Accept' => $format,
-                        ],
-                        'query' => [
-                            'scanId' => $uploadId,
-                            'profile' => $profile,
-                        ],
-                    ]
-                );
+                $statusResponse = $this->makeRequest($api, $uploadId, $profile, $format, $snippets);
 
                 if ($statusResponse->getStatusCode() === Response::HTTP_OK) {
                     // License report generation is finished!
@@ -193,5 +190,31 @@ class LicenseReportCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * @throws TransportExceptionInterface
+     */
+    private function makeRequest(API $api, int $uploadId, string $profile, string $format, bool $snippets): ResponseInterface
+    {
+        $query = [
+            'scanId' => $uploadId,
+            'profile' => $profile,
+        ];
+
+        if ($snippets) {
+            $query = \array_merge($query, ['snippets' => '1']);
+        }
+
+        return $api->makeApiCall(
+            Request::METHOD_GET,
+            '/api/1.0/license/report',
+            [
+                'headers' => [
+                    'Accept' => $format,
+                ],
+                'query' => $query,
+            ]
+        );
     }
 }
