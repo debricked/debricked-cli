@@ -141,6 +141,15 @@ class CheckScanCommand extends Command
         }
         $io->text($urlMessage);
 
+        $io->text('pe action: ' . $status['policyEngineAction']);
+        if (isset($status['policyEngineAction']) && $status['policyEngineAction'] !== 'none') {
+            if ($status['policyEngineAction'] === 'fail') {
+                $io->error("\n\n.A policy engine rule triggered a pipeline failure.");
+            } else if ($status['policyEngineAction'] === 'warn') {
+                $io->caution("\n\n.A policy engine rule triggered a pipeline warning.");
+            }
+        }
+
         return 0;
     }
 }
