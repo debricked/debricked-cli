@@ -38,10 +38,7 @@ class LicenseReportCommand extends Command
     public const OPTION_OUTPUT_FILE = 'output';
     public const OPTION_SNIPPETS = 'snippets';
 
-    /**
-     * @var HttpClientInterface
-     */
-    private $debrickedClient;
+    private HttpClientInterface $debrickedClient;
 
     public function __construct(HttpClientInterface $debrickedClient, $name = null)
     {
@@ -80,7 +77,7 @@ class LicenseReportCommand extends Command
             ->addArgument(
                 self::ARGUMENT_PROFILE,
                 InputArgument::REQUIRED,
-                'The license risk profile you wish to use for this scan',
+                'The license risk profile you wish to use for this scan: internal, network, distributed, or consumer-electronic',
                 null,
             )
             ->addOption(
