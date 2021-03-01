@@ -10,6 +10,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -110,5 +111,23 @@ class CheckScanCommandTest extends KernelTestCase
         $output = $this->runPolicyEngineTest('fail');
         $this->assertContains("A policy engine rule triggered a pipeline failure.", $output);
         $this->assertNotContains("A policy engine rule triggered a pipeline warning.", $output);
+    }
+
+    public function testQueueTimeTooLong()
+    {
+        $response = new MockResponse("The queue time was too long", ['http_code' => Response::HTTP_CREATED]);
+        $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
+        $command = new CheckScanCommand($httpClient, 'name');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            CheckScanCommand::ARGUMENT_UPLOAD_ID => '0',
+        ]);
+
+        $output = $commandTester->getDisplay();
+        $this->assertEquals(0, $commandTester->getStatusCode(), $output);
+        $this->assertContains("The queue time was too long", $output);
     }
 }
