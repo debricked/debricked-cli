@@ -150,12 +150,7 @@ class CheckScanCommand extends Command
         if ($status['vulnerabilitiesFound'] > 0) {
             $io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
         } else {
-            $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
-            if ($status['vulnerabilitiesFound'] > 0) {
-                $io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
-            } else {
-                $io->success("\n\nScan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
-            }
+            $io->success("\n\nScan completed, no vulnerabilities ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected) found at this moment.");
         }
 
         $io->text($urlMessage);
