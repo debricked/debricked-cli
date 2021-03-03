@@ -7,6 +7,8 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
  * Tests @see FindAndUploadFilesCommand.
@@ -15,25 +17,8 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 class FindAndUploadFilesCommandTest extends KernelTestCase
 {
-    /**
-     * @var Command
-     */
-    private $command;
-
-    /**
-     * @var CommandTester
-     */
-    private $commandTester;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-
-        $kernel = self::createKernel();
-        $application = new Application($kernel);
-        $this->command = $application->find(FindAndUploadFilesCommand::getDefaultName());
-        $this->commandTester = new CommandTester($this->command);
-    }
+    private Command $command;
+    private CommandTester $commandTester;
 
     private function zipFileContents($repositoryName, $commitName): array
     {
@@ -52,6 +37,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testExecuteInvalidCredentials()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => 'invalid@invalid.invalid',
@@ -70,6 +56,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testExecute()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -89,6 +76,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testExecuteWithoutBranch()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -107,6 +95,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testExecuteDisabledRecursiveAndDifferentBase()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -129,6 +118,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testExecuteNothingExcluded()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -160,6 +150,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testUploadAllFiles()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -206,6 +197,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testUploadAllFilesBaseDirectory()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -253,6 +245,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testUploadsAdjacentDependencyTreeFilesAsZip()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -292,6 +285,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testDontKeepZip()
     {
+        $this->setUpReal();
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -310,6 +304,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testDoesUploadWfpFingerprints()
     {
+        $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
         $this->commandTester->execute([
             'command' => $this->command->getName(),
@@ -329,6 +324,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testDoesUploadWfpFingerprintsWithUploadAllFiles()
     {
+        $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
         $this->commandTester->execute([
             'command' => $this->command->getName(),
@@ -355,6 +351,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
     public function testDoesntUploadWfpFingerprints()
     {
+        $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded would have been the fingerprints.
         // But that is disable, so we look for Nothing to upload.
         $this->commandTester->execute([
@@ -374,4 +371,197 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('Nothing to upload!', $output);
     }
 
+    public function testUploadAllFilesFalseMeansFalse()
+    {
+        $this->setUpMocks();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-upload-all-files-false-means-false',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'azureDevOps',
+            '--upload-all-files' => 'false',
+            '--excluded-directories' => 'vendor,var',
+            '--keep-zip' => null,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $files = $this->zipFileContents('test-upload-all-files-false-means-false', 'test-commit');
+        $this->verifyZipContentsUploadAll(false, $output, $files);
+    }
+
+    public function testUploadAllFilesTrueMeansTrue()
+    {
+        $this->setUpMocks();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-upload-all-files-true-means-true',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'azureDevOps',
+            '--upload-all-files' => 'true',
+            '--excluded-directories' => 'vendor,var',
+            '--keep-zip' => null,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $files = $this->zipFileContents('test-upload-all-files-true-means-true', 'test-commit');
+        $this->verifyZipContentsUploadAll(true, $output, $files);
+    }
+
+    public function testUploadAllFiles0MeansFalse()
+    {
+        $this->setUpMocks();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-upload-all-files-0-means-false',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'azureDevOps',
+            '--upload-all-files' => '0',
+            '--excluded-directories' => 'vendor,var',
+            '--keep-zip' => null,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $files = $this->zipFileContents('test-upload-all-files-0-means-false', 'test-commit');
+        $this->verifyZipContentsUploadAll(false, $output, $files);
+    }
+
+    public function testUploadAllFiles1MeansTrue()
+    {
+        $this->setUpMocks();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-upload-all-files-1-means-true',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'azureDevOps',
+            '--upload-all-files' => '1',
+            '--excluded-directories' => 'vendor,var',
+            '--keep-zip' => null,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $files = $this->zipFileContents('test-upload-all-files-1-means-true', 'test-commit');
+        $this->verifyZipContentsUploadAll(true, $output, $files);
+    }
+
+    public function testUploadAllFilesWeirdMeansError()
+    {
+        $this->setUpMocks();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-upload-all-files-1-means-true',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'azureDevOps',
+            '--upload-all-files' => 'weird',
+            '--excluded-directories' => 'vendor,var',
+            '--keep-zip' => null,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
+    }
+
+
+    /** Helper function for tests that check our upload all files flag.
+     * @param bool $uploadAll If we expect all files to be uploaded
+     * @param string $output
+     * @param string[] $files
+     */
+    private function verifyZipContentsUploadAll(bool $uploadAll, string $output, array $files): void
+    {
+        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringContainsString('Successfully created zip file', $output);
+        $this->assertStringContainsString('Gradle/MPChartExample/build.gradle', $output);
+        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle ', $output);
+        $this->assertStringContainsString('Gradle/build.gradle ', $output);
+        $this->assertStringContainsString('CsProj/exampleFile.csproj ', $output);
+        $this->assertStringNotContainsString('Recursive search is disabled', $output);
+
+        if ($uploadAll) {
+            $err_message = 'These files were inside zip: '.json_encode($files);
+            $this->assertContains('README.md', $files, $err_message);
+            $this->assertContains('tests/AdjacentFiles/Gradle/MPChartExample/build.gradle', $files, $err_message);
+            $this->assertContains('tests/DependencyFiles/Gradle/MPChartLib/build.gradle', $files, $err_message);
+            $this->assertContains('src/Command/FindAndUploadFilesCommand.php', $files, $err_message);
+
+            // Check that we have a lot of files in the zip.
+            $this->assertTrue(count($files) > 50, 'Too few files in zip, found '.count($files));
+        } else {
+            // Check that zip does only have adjacent files, not all files.
+            $err_message = 'These files were inside zip: '.json_encode($files);
+            $this->assertCount(3, $files, 'These files were in zip: '.json_encode($files));
+            $this->assertNotContains('README.md', $files, $err_message);
+            $this->assertNotContains('src/Command/FindAndUploadFilesCommand.php', $files, $err_message);
+            $this->assertContains('tests/AdjacentFiles/Gradle/.debricked-gradle-dependencies.txt', $files);
+            $this->assertContains('tests/AdjacentFiles/Gradle/MPChartExample/.debricked-gradle-dependencies.txt', $files);
+            $this->assertContains('tests/AdjacentFiles/Gradle/MPChartLib/.debricked-gradle-dependencies.txt', $files);
+        }
+
+        // Check that zip filenames don't start with / or have multiple // inside them.
+        foreach ($files as $file) {
+            $this->assertNotRegexp('#^/#', $file);
+            $this->assertNotRegexp('#//#', $file);
+        }
+    }
+
+    public function setUpReal(): void
+    {
+        $kernel = self::createKernel();
+        $application = new Application($kernel);
+        $this->command = $application->find(FindAndUploadFilesCommand::getDefaultName());
+        $this->commandTester = new CommandTester($this->command);
+    }
+
+    private function setUpMocks(): void
+    {
+        $ciUploadId = null;
+        $responseMockGenerator = function ($method, $url, $options) use ($ciUploadId) {
+            if (\strpos($url, '/api/1.0/open/uploads/dependencies/files') !== false) {
+                if ($ciUploadId === null) $ciUploadId = \rand(100, 1_000_000);
+                return new MockResponse(\json_encode([
+                    'ciUploadId' => $ciUploadId,
+                    'uploadProgramsFileId' => \rand(100, 1_000_000),
+                ]));
+            } else if (\strpos($url, '/api/1.0/open/finishes/dependencies/files/uploads') !== false) {
+                return new MockResponse('', ['http_code' => 204]);
+            } else if (\strpos($url, '/api/1.0/open/supported/dependency/files') !== false) {
+                return new MockResponse(<<<'EOD'
+{"dependencyFileNames":["apk\\.list","apt\\.list","((?!WORKSPACE|BUILD)).*(?:\\.bazel)","((?!WORKSPACE|BUILD)).*(?:\\.bzl)",".*_install\\.json","WORKSPACE\\.bazel","WORKSPACE\\.bzl","WORKSPACE","Podfile\\.lock","composer\\.lock","mix\\.lock","flatpak\\.list","Gemfile\\.lock","go\\.mod","Gopkg\\.lock","go\\.sum","build\\.gradle","build\\.gradle\\.kts","pom\\.xml","bower\\.json","package-lock\\.json","npm-shrinkwrap\\.json","package\\.json","yarn\\.lock",".*(?:\\.csproj)","packages\\.config","packages\\.lock\\.json","pacman\\.list","paket\\.lock","requirements.*(?:\\.txt)","Pipfile\\.lock","Pipfile","rpm\\.list","Cargo\\.lock","snap\\.list","\\.debricked-wfp-fingerprints\\.txt"],"dependencyFileNamesRequiresAllFiles":["WORKSPACE\\.bazel","WORKSPACE\\.bzl","WORKSPACE","build\\.gradle","build\\.gradle\\.kts","pom\\.xml"],"adjacentDependencyFileNames":{"build.gradle":".debricked-gradle-dependencies.txt","build.gradle.kts":".debricked-gradle-dependencies.txt","pom.xml":".debricked-maven-dependencies.tgf"}}
+EOD);
+            } else {
+                return new MockResponse('', ['http_code' => 404]);
+            }
+        };
+
+        $mockClient = new MockHttpClient($responseMockGenerator, $_ENV['DEBRICKED_API_URI']);
+
+        $kernel = self::createKernel();
+        $application = new Application($kernel);
+        $application->add(new FindAndUploadFilesCommand($mockClient));
+        $this->command = $application->find(FindAndUploadFilesCommand::getDefaultName());
+        $this->commandTester = new CommandTester($this->command);
+    }
 }
