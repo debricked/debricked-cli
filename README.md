@@ -1,5 +1,5 @@
 # debricked-cli
-[![Build Status](https://travis-ci.org/debricked/debricked-cli.svg?branch=master)](https://travis-ci.org/debricked/debricked-cli)
+[![Build Status](https://github.com/debricked/debricked-cli/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/debricked/debricked-cli/actions/workflows/test.yml)
 [![Latest Stable Version](https://poser.pugx.org/debricked/cli/v/stable)](https://packagist.org/packages/debricked/cli)
 
 ![Debricked CLI in action](debricked-cli.png)
