@@ -49,6 +49,7 @@ class FindAndUploadFilesCommand extends Command
     private const OPTION_KEEP_ZIP = 'keep-zip';
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
+    private const OPTION_AUTHOR = 'author';
 
     /**
      * @var HttpClientInterface
@@ -156,6 +157,13 @@ class FindAndUploadFilesCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Set to 1 to upload all files.',
                 0
+            )
+            ->addOption(
+                self::OPTION_AUTHOR,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'The author of the commit',
+                ''
             );
     }
 
@@ -336,6 +344,7 @@ class FindAndUploadFilesCommand extends Command
         if ($uploadId !== null) {
             $formFields = ['ciUploadId' => \strval($uploadId)];
             $formFields['integrationName'] = $input->getArgument(self::ARGUMENT_INTEGRATION_NAME);
+            $formFields['author'] = $input->getOption(self::OPTION_AUTHOR);
 
             if ($shouldUploadZip === true && $successfullyCreatedZip === true) {
                 $formFields['repositoryName'] = $repository;

@@ -66,6 +66,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'repository-url' => 'repository-url',
             'integration-name' => 'azureDevOps',
             '--branch-name' => 'test-branch',
+            '--author' => 'test-author'
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -85,6 +86,26 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'commit-name' => 'test-commit',
             'repository-url' => 'repository-url',
             'integration-name' => 'azureDevOps',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Recursive search is disabled', $output);
+    }
+
+    public function testExecuteWithoutAuthor()
+    {
+        $this->setUpReal();
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'azureDevOps',
+            '--branch-name' => 'test-branch',
         ]);
 
         $output = $this->commandTester->getDisplay();
