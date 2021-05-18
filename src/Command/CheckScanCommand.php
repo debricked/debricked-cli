@@ -148,7 +148,6 @@ class CheckScanCommand extends Command
 
         $urlMessage = "Please visit {$status['detailsUrl']} for more information.";
         if ($status['vulnerabilitiesFound'] > 0) {
-            //$io->error("\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.");
             $message = "\n\nScan completed, {$status['vulnerabilitiesFound']} vulnerabilities found. An additional {$status['unaffectedVulnerabilitiesFound']} vulnerabilities have been marked as unaffected.";
             $io->block($message, 'VULNERABILITIES FOUND', 'fg=white;bg=red', ' ', true);
         } else {
