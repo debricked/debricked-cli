@@ -351,4 +351,27 @@ class CheckScanCommandTest extends KernelTestCase
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
         $this->assertContains('VULNERABILITIES FOUND', $output);
     }
+
+    public function testVulnerabilitiesFound()
+    {
+        $response = new MockResponse(\json_encode([
+            'progress' => 100,
+            'vulnerabilitiesFound' => 5,
+            'unaffectedVulnerabilitiesFound' => 0,
+            'detailsUrl' => '',
+        ]));
+        $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
+        $command = new CheckScanCommand($httpClient, 'name');
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            CheckScanCommand::ARGUMENT_UPLOAD_ID => '0',
+        ]);
+
+        $output = $commandTester->getDisplay();
+        $this->assertEquals(0, $commandTester->getStatusCode(), $output);
+        $this->assertContains("VULNERABILITIES FOUND", $output);
+    }
 }
