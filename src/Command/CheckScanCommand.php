@@ -159,7 +159,7 @@ class CheckScanCommand extends Command
         $automationsAction = 'none';
         if (isset($status['automationsAction'])) {
             $automationsAction = $status['automationsAction'];
-        } else if (isset($status['policyEngineAction'])) {
+        } elseif (isset($status['policyEngineAction'])) {
             $automationsAction = $status['policyEngineAction'];
         }
         if ($automationsAction !== 'none') {
