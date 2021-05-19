@@ -68,13 +68,13 @@ class CheckScanCommandTest extends KernelTestCase
         $this->assertRegExp('/Invalid\s+credentials./', $output);
     }
 
-    private function runPolicyEngineTest(string $action): string
+    private function runAutomationsActionTest(string $action, string $automationsActionFieldName = 'automationsAction'): string
     {
         $response = new MockResponse(\json_encode([
             'progress' => 100,
             'vulnerabilitiesFound' => 0,
             'unaffectedVulnerabilitiesFound' => 0,
-            'policyEngineAction' => $action,
+            $automationsActionFieldName => $action,
             'detailsUrl' => '',
         ]));
         $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
@@ -92,25 +92,32 @@ class CheckScanCommandTest extends KernelTestCase
         return $output;
     }
 
-    public function testPolicyEngineNone()
+    public function testAutomationsActionNone()
     {
-        $output = $this->runPolicyEngineTest('none');
-        $this->assertNotContains("A policy engine rule triggered a pipeline warning.", $output);
-        $this->assertNotContains("A policy engine rule triggered a pipeline failure.", $output);
+        $output = $this->runAutomationsActionTest('none');
+        $this->assertNotContains("An automation rule triggered a pipeline warning.", $output);
+        $this->assertNotContains("An automation rule triggered a pipeline failure.", $output);
     }
 
-    public function testPolicyEngineWarn()
+    public function testAutomationsActionWarn()
     {
-        $output = $this->runPolicyEngineTest('warn');
-        $this->assertContains("A policy engine rule triggered a pipeline warning.", $output);
-        $this->assertNotContains("A policy engine rule triggered a pipeline failure.", $output);
+        $output = $this->runAutomationsActionTest('warn');
+        $this->assertContains("An automation rule triggered a pipeline warning.", $output);
+        $this->assertNotContains("An automation rule triggered a pipeline failure.", $output);
     }
 
-    public function testPolicyEngineFail()
+    public function testAutomationsActionFail()
     {
-        $output = $this->runPolicyEngineTest('fail');
-        $this->assertContains("A policy engine rule triggered a pipeline failure.", $output);
-        $this->assertNotContains("A policy engine rule triggered a pipeline warning.", $output);
+        $output = $this->runAutomationsActionTest('fail');
+        $this->assertContains("An automation rule triggered a pipeline failure.", $output);
+        $this->assertNotContains("An automation rule triggered a pipeline warning.", $output);
+    }
+
+    public function testPolicyEngineActionFail()
+    {
+        $output = $this->runAutomationsActionTest('fail', 'policyEngineAction');
+        $this->assertContains("An automation rule triggered a pipeline failure.", $output);
+        $this->assertNotContains("An automation rule triggered a pipeline warning.", $output);
     }
 
     public function testQueueTimeTooLong()
