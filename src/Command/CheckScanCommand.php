@@ -231,7 +231,13 @@ class CheckScanCommand extends Command
             $io->section("Output from automations");
 
             $numRulesChecked = \count($status['automationRules']);
-            $io->text("${numRulesChecked} rules checked:");
+            if ($numRulesChecked === 0) {
+                $io->text("No rules were checked");
+            } else if ($numRulesChecked === 1) {
+                $io->text("1 rule was checked:");
+            } else {
+                $io->text("${numRulesChecked} rules were checked:");
+            }
 
             foreach ($status['automationRules'] as $rule) {
                 $this->writeAutomationOutput($rule, $io);
