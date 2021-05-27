@@ -165,6 +165,8 @@ class CheckScanCommand extends Command
         if ($automationsAction !== 'none') {
             if ($automationsAction === 'fail') {
                 $io->error("\n\nAn automation rule triggered a pipeline failure.");
+
+                return 2;
             } elseif ($automationsAction === 'warn') {
                 $io->caution("\n\nAn automation rule triggered a pipeline warning.");
             }

@@ -11,7 +11,6 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Tests @see CheckScanCommand.
@@ -68,8 +67,11 @@ class CheckScanCommandTest extends KernelTestCase
         $this->assertRegExp('/Invalid\s+credentials./', $output);
     }
 
-    private function runAutomationsActionTest(string $action, string $automationsActionFieldName = 'automationsAction'): string
-    {
+    private function runAutomationsActionTest(
+        string $action,
+        int $expectedStatusCode = 0,
+        string $automationsActionFieldName = 'automationsAction'
+    ): string {
         $response = new MockResponse(\json_encode([
             'progress' => 100,
             'vulnerabilitiesFound' => 0,
@@ -87,7 +89,7 @@ class CheckScanCommandTest extends KernelTestCase
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '0',
         ]);
         $output = $commandTester->getDisplay();
-        $this->assertEquals(0, $commandTester->getStatusCode(), $output);
+        $this->assertEquals($expectedStatusCode, $commandTester->getStatusCode(), $output);
 
         return $output;
     }
@@ -95,34 +97,34 @@ class CheckScanCommandTest extends KernelTestCase
     public function testAutomationsActionNone()
     {
         $output = $this->runAutomationsActionTest('none');
-        $this->assertNotContains("An automation rule triggered a pipeline warning.", $output);
-        $this->assertNotContains("An automation rule triggered a pipeline failure.", $output);
+        $this->assertNotContains('An automation rule triggered a pipeline warning.', $output);
+        $this->assertNotContains('An automation rule triggered a pipeline failure.', $output);
     }
 
     public function testAutomationsActionWarn()
     {
         $output = $this->runAutomationsActionTest('warn');
-        $this->assertContains("An automation rule triggered a pipeline warning.", $output);
-        $this->assertNotContains("An automation rule triggered a pipeline failure.", $output);
+        $this->assertContains('An automation rule triggered a pipeline warning.', $output);
+        $this->assertNotContains('An automation rule triggered a pipeline failure.', $output);
     }
 
     public function testAutomationsActionFail()
     {
-        $output = $this->runAutomationsActionTest('fail');
-        $this->assertContains("An automation rule triggered a pipeline failure.", $output);
-        $this->assertNotContains("An automation rule triggered a pipeline warning.", $output);
+        $output = $this->runAutomationsActionTest('fail', 2);
+        $this->assertContains('An automation rule triggered a pipeline failure.', $output);
+        $this->assertNotContains('An automation rule triggered a pipeline warning.', $output);
     }
 
     public function testPolicyEngineActionFail()
     {
-        $output = $this->runAutomationsActionTest('fail', 'policyEngineAction');
-        $this->assertContains("An automation rule triggered a pipeline failure.", $output);
-        $this->assertNotContains("An automation rule triggered a pipeline warning.", $output);
+        $output = $this->runAutomationsActionTest('fail', 2, 'policyEngineAction');
+        $this->assertContains('An automation rule triggered a pipeline failure.', $output);
+        $this->assertNotContains('An automation rule triggered a pipeline warning.', $output);
     }
 
     public function testQueueTimeTooLong()
     {
-        $response = new MockResponse("The queue time was too long", ['http_code' => Response::HTTP_CREATED]);
+        $response = new MockResponse('The queue time was too long', ['http_code' => Response::HTTP_CREATED]);
         $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
         $command = new CheckScanCommand($httpClient, 'name');
 
@@ -135,7 +137,7 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $commandTester->getDisplay();
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
-        $this->assertContains("The queue time was too long", $output);
+        $this->assertContains('The queue time was too long', $output);
     }
 
     public function testVulnerabilitiesFound()
@@ -158,6 +160,6 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $commandTester->getDisplay();
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
-        $this->assertContains("VULNERABILITIES FOUND", $output);
+        $this->assertContains('VULNERABILITIES FOUND', $output);
     }
 }
