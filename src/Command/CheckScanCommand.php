@@ -73,6 +73,77 @@ class CheckScanCommand extends Command
             );
     }
 
+    private const ACTION_STRINGS = [
+        'warnPipeline' => "a pipeline warning",
+        'failPipeline' => "a pipeline failure",
+        'sendEmail' => 'an email notification',
+        'markUnaffected' => 'the vulnerabilities to be marked as unaffected',
+        'markVulnerable' => 'the vulnerabilities to be flagged as vulnerable',
+    ];
+
+    private function writeAutomationOutput(array $ruleOutputData, SymfonyStyle $io)
+    {
+        $io->block($ruleOutputData['ruleDescription'], null, 'fg=cyan;bg=default', ' | ');
+
+        if ($ruleOutputData['triggered'] === false) {
+            $io->text('<fg=green>✔</> The rule did not trigger');
+        } else {
+            $actions = $ruleOutputData['ruleActions'];
+
+            $causingString = '';
+            for ($i = 0; $i < \count($actions); $i++) {
+                if ($i !== 0) {
+                    $causingString .= $i + 1 === \count($actions) ? ' and ' : ', ';
+                }
+                if (\array_key_exists($actions[$i], self::ACTION_STRINGS) === true) {
+                    $causingString .= self::ACTION_STRINGS[$actions[$i]];
+                }
+            }
+
+            if (\in_array('failPipeline', $actions)) {
+                $fgColor = 'red';
+            } else if (\in_array('warnPipeline', $actions)) {
+                $fgColor = 'yellow';
+            } else {
+                $fgColor = 'blue';
+            }
+
+            $io->text("<fg=${fgColor};options=bold>⨯ The rule triggered, causing ${causingString}</>");
+        }
+
+        $io->text('  Manage rule: <fg=blue>' . $ruleOutputData['ruleLink'] . '</>');
+
+        if ($ruleOutputData['triggered'] === true) {
+            $io->newLine();
+            $io->text('The rule triggered for:');
+
+            $hasCves = $ruleOutputData['hasCves'];
+            if ($hasCves === true) {
+                $tableHeader = ['Vulnerability', 'CVSS2', 'CVSS3', 'Dependency', 'Dependency Licenses'];
+            } else {
+                $tableHeader = ['Dependency', 'Dependency Licenses'];
+            }
+
+            $tableRows = \array_map(function ($trigger) use ($hasCves) {
+                $row = [];
+                if ($hasCves === true) {
+                    $row[] = $trigger['cve'] . "\n<fg=blue>" . $trigger['cveLink'] . "</>\n";
+                    $row[] = $trigger['cvss2'] ?? '';
+                    $row[] = $trigger['cvss3'] ?? '';
+                }
+
+                $row[] = $trigger['dependency'] . "\n<fg=blue>" . $trigger['dependencyLink'] . "</>\n";
+                $row[] = \implode(', ', $trigger['licenses']);
+
+                return $row;
+            }, $ruleOutputData['triggerEvents']);
+
+            $io->table($tableHeader, $tableRows);
+        }
+
+        $io->newLine(3);
+    }
+
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
@@ -155,6 +226,23 @@ class CheckScanCommand extends Command
         }
 
         $io->text($urlMessage);
+
+        if (isset($status['automationRules'])) {
+            $io->section("Output from automations");
+
+            $numRulesChecked = \count($status['automationRules']);
+            if ($numRulesChecked === 0) {
+                $io->text("No rules were checked");
+            } else if ($numRulesChecked === 1) {
+                $io->text("1 rule was checked:");
+            } else {
+                $io->text("${numRulesChecked} rules were checked:");
+            }
+
+            foreach ($status['automationRules'] as $rule) {
+                $this->writeAutomationOutput($rule, $io);
+            }
+        }
 
         $automationsAction = 'none';
         if (isset($status['automationsAction'])) {
