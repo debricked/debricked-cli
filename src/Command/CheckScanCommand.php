@@ -74,14 +74,17 @@ class CheckScanCommand extends Command
     }
 
     private const ACTION_STRINGS = [
-        'warnPipeline' => "a pipeline warning",
-        'failPipeline' => "a pipeline failure",
+        'warnPipeline' => 'a pipeline warning',
+        'failPipeline' => 'a pipeline failure',
         'sendEmail' => 'an email notification',
         'markUnaffected' => 'the vulnerabilities to be marked as unaffected',
         'markVulnerable' => 'the vulnerabilities to be flagged as vulnerable',
     ];
 
-    private function writeAutomationOutput(array $ruleOutputData, SymfonyStyle $io)
+    /**
+     * @param mixed[] $ruleOutputData
+     */
+    private function writeAutomationOutput(array $ruleOutputData, SymfonyStyle $io): void
     {
         $io->block($ruleOutputData['ruleDescription'], null, 'fg=cyan;bg=default', ' | ');
 
@@ -91,7 +94,7 @@ class CheckScanCommand extends Command
             $actions = $ruleOutputData['ruleActions'];
 
             $causingString = '';
-            for ($i = 0; $i < \count($actions); $i++) {
+            for ($i = 0; $i < \count($actions); ++$i) {
                 if ($i !== 0) {
                     $causingString .= $i + 1 === \count($actions) ? ' and ' : ', ';
                 }
@@ -102,7 +105,7 @@ class CheckScanCommand extends Command
 
             if (\in_array('failPipeline', $actions)) {
                 $fgColor = 'red';
-            } else if (\in_array('warnPipeline', $actions)) {
+            } elseif (\in_array('warnPipeline', $actions)) {
                 $fgColor = 'yellow';
             } else {
                 $fgColor = 'blue';
@@ -111,7 +114,7 @@ class CheckScanCommand extends Command
             $io->text("<fg=${fgColor};options=bold>⨯ The rule triggered, causing ${causingString}</>");
         }
 
-        $io->text('  Manage rule: <fg=blue>' . $ruleOutputData['ruleLink'] . '</>');
+        $io->text('  Manage rule: <fg=blue>'.$ruleOutputData['ruleLink'].'</>');
 
         if ($ruleOutputData['triggered'] === true) {
             $io->newLine();
@@ -127,12 +130,12 @@ class CheckScanCommand extends Command
             $tableRows = \array_map(function ($trigger) use ($hasCves) {
                 $row = [];
                 if ($hasCves === true) {
-                    $row[] = $trigger['cve'] . "\n<fg=blue>" . $trigger['cveLink'] . "</>\n";
+                    $row[] = $trigger['cve']."\n<fg=blue>".$trigger['cveLink']."</>\n";
                     $row[] = $trigger['cvss2'] ?? '';
                     $row[] = $trigger['cvss3'] ?? '';
                 }
 
-                $row[] = $trigger['dependency'] . "\n<fg=blue>" . $trigger['dependencyLink'] . "</>\n";
+                $row[] = $trigger['dependency']."\n<fg=blue>".$trigger['dependencyLink']."</>\n";
                 $row[] = \implode(', ', $trigger['licenses']);
 
                 return $row;
@@ -228,13 +231,13 @@ class CheckScanCommand extends Command
         $io->text($urlMessage);
 
         if (isset($status['automationRules'])) {
-            $io->section("Output from automations");
+            $io->section('Output from automations');
 
             $numRulesChecked = \count($status['automationRules']);
             if ($numRulesChecked === 0) {
-                $io->text("No rules were checked");
-            } else if ($numRulesChecked === 1) {
-                $io->text("1 rule was checked:");
+                $io->text('No rules were checked');
+            } elseif ($numRulesChecked === 1) {
+                $io->text('1 rule was checked:');
             } else {
                 $io->text("${numRulesChecked} rules were checked:");
             }

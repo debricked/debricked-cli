@@ -72,8 +72,7 @@ class CheckScanCommandTest extends KernelTestCase
         int $expectedStatusCode = 0,
         string $automationsActionFieldName = 'automationsAction',
         array $automationRules = null
-    ): string
-    {
+    ): string {
         $response = new MockResponse(\json_encode([
             'progress' => 100,
             'vulnerabilitiesFound' => 0,
@@ -132,7 +131,7 @@ class CheckScanCommandTest extends KernelTestCase
                 'ruleDescription' => 'untriggered description<fg=red>',
                 'ruleLink' => 'link-to-rule',
                 'triggered' => false,
-            ]
+            ],
         ]);
 
         $this->assertContains("\nOutput from automations\n", $output);
@@ -152,7 +151,7 @@ class CheckScanCommandTest extends KernelTestCase
                 'ruleActions' => ['failPipeline', 'sendEmail'],
                 'hasCves' => true,
                 'triggerEvents' => [],
-            ]
+            ],
         ]);
 
         $this->assertContains("\nOutput from automations\n", $output);
@@ -173,7 +172,7 @@ class CheckScanCommandTest extends KernelTestCase
                 'ruleActions' => ['warnPipeline'],
                 'hasCves' => true,
                 'triggerEvents' => [],
-            ]
+            ],
         ]);
 
         $this->assertContains("\nOutput from automations\n", $output);
@@ -188,7 +187,7 @@ class CheckScanCommandTest extends KernelTestCase
     {
         $output = $this->runAutomationsActionTest('fail', 2, 'automationsAction', [
             [
-                'ruleDescription' => "rule description 1",
+                'ruleDescription' => 'rule description 1',
                 'ruleLink' => 'link-to-rule-1',
                 'triggered' => true,
                 'ruleActions' => ['failPipeline'],
@@ -201,7 +200,7 @@ class CheckScanCommandTest extends KernelTestCase
                         'cveLink' => 'cve-link-1',
                         'dependency' => 'dep-1',
                         'dependencyLink' => 'dep-link-1',
-                        'licenses' => ['gpl3']
+                        'licenses' => ['gpl3'],
                     ],
                     [
                         'cve' => 'cve-2',
@@ -209,18 +208,18 @@ class CheckScanCommandTest extends KernelTestCase
                         'cvss2' => 7,
                         'dependency' => 'dep-2',
                         'dependencyLink' => 'dep-link-2',
-                        'licenses' => ['mit']
-                    ]
+                        'licenses' => ['mit'],
+                    ],
                 ],
             ],
             [
-                'ruleDescription' => "rule description 2",
+                'ruleDescription' => 'rule description 2',
                 'ruleLink' => 'link-to-rule-2',
                 'triggered' => false,
-                'ruleActions' => ['failPipeline']
+                'ruleActions' => ['failPipeline'],
             ],
             [
-                'ruleDescription' => "rule description 3",
+                'ruleDescription' => 'rule description 3',
                 'ruleLink' => 'link-to-rule-3',
                 'triggered' => true,
                 'ruleActions' => ['warnPipeline', 'sendEmail'],
@@ -229,13 +228,13 @@ class CheckScanCommandTest extends KernelTestCase
                     [
                         'dependency' => 'dep-1',
                         'dependencyLink' => 'dep-link-1',
-                        'licenses' => ['apache', 'mit']
+                        'licenses' => ['apache', 'mit'],
                     ],
                     [
                         'dependency' => 'dep-3',
                         'dependencyLink' => 'dep-link-3',
-                        'licenses' => ['mit']
-                    ]
+                        'licenses' => ['mit'],
+                    ],
                 ],
             ],
         ]);
@@ -253,25 +252,25 @@ class CheckScanCommandTest extends KernelTestCase
         $this->assertStringStartsWith(' ---', $outputLines[$rule1Begin + 6]);
         $this->assertEquals(
             ['Vulnerability', 'CVSS2', 'CVSS3', 'Dependency', 'Dependency', 'Licenses'],
-            \preg_split('/\s+/', $outputLines[$rule1Begin + 7], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule1Begin + 7], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertStringStartsWith(' ---', $outputLines[$rule1Begin + 8]);
         $this->assertEquals(
             ['cve-1', '8', '9', 'dep-1', 'gpl3'],
-            \preg_split('/\s+/', $outputLines[$rule1Begin + 9], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule1Begin + 9], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertEquals(
             ['cve-link-1', 'dep-link-1'],
-            \preg_split('/\s+/', $outputLines[$rule1Begin + 10], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule1Begin + 10], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertEquals('', $outputLines[$rule1Begin + 11]);
         $this->assertEquals(
             ['cve-2', '7', 'dep-2', 'mit'],
-            \preg_split('/\s+/', $outputLines[$rule1Begin + 12], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule1Begin + 12], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertEquals(
             ['cve-link-2', 'dep-link-2'],
-            \preg_split('/\s+/', $outputLines[$rule1Begin + 13], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule1Begin + 13], null, PREG_SPLIT_NO_EMPTY)
         );
 
         $rule2Begin = \array_search(' | rule description 2', $outputLines);
@@ -287,25 +286,25 @@ class CheckScanCommandTest extends KernelTestCase
         $this->assertStringStartsWith(' ---', $outputLines[$rule3Begin + 6]);
         $this->assertEquals(
             ['Dependency', 'Dependency', 'Licenses'],
-            \preg_split('/\s+/', $outputLines[$rule3Begin + 7], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule3Begin + 7], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertStringStartsWith(' ---', $outputLines[$rule3Begin + 8]);
         $this->assertEquals(
             ['dep-1', 'apache,', 'mit'],
-            \preg_split('/\s+/', $outputLines[$rule3Begin + 9], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule3Begin + 9], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertEquals(
             ['dep-link-1'],
-            \preg_split('/\s+/', $outputLines[$rule3Begin + 10], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule3Begin + 10], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertEquals('', $outputLines[$rule3Begin + 11]);
         $this->assertEquals(
             ['dep-3', 'mit'],
-            \preg_split('/\s+/', $outputLines[$rule3Begin + 12], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule3Begin + 12], null, PREG_SPLIT_NO_EMPTY)
         );
         $this->assertEquals(
             ['dep-link-3'],
-            \preg_split('/\s+/', $outputLines[$rule3Begin + 13], NULL, PREG_SPLIT_NO_EMPTY)
+            \preg_split('/\s+/', $outputLines[$rule3Begin + 13], null, PREG_SPLIT_NO_EMPTY)
         );
 
         $this->assertGreaterThan($rule1Begin, $rule2Begin);
