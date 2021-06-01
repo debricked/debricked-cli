@@ -11,9 +11,10 @@ jobs:
     - name: Build test container
       run: docker build --target=test -t debricked/debricked-cli-test .
     - name: Run tests
-      run: docker run -e DEBRICKED_API_URI="$URI" -e DEBRICKED_USERNAME="$USER" -e DEBRICKED_PASSWORD="$PASS" -e EXCLUDED_DIRECTORIES="$EXCLUDED_DIRECTORIES" debricked/debricked-cli-test
+      run: docker run -e DEBRICKED_API_URI="$URI" -e DEBRICKED_USERNAME="$USER" -e DEBRICKED_PASSWORD="$PASS" -e DEBRICKED_TOKEN="$TOKEN" -e EXCLUDED_DIRECTORIES="$EXCLUDED_DIRECTORIES" debricked/debricked-cli-test
       env:
         USER: ${{ secrets.DEBRICKED_STAGING_USERNAME }}
         PASS: ${{ secrets.DEBRICKED_STAGING_PASSWORD }}
+        TOKEN: ${{ secrets.DEBRICKED_STAGING_TOKEN }}
         URI: ${{ secrets.DEBRICKED_STAGING_URI }}
         EXCLUDED_DIRECTORIES: "vendor,tests"

@@ -80,13 +80,13 @@ class FindAndUploadFilesCommand extends Command
             ->addArgument(
                 self::ARGUMENT_USERNAME,
                 InputArgument::REQUIRED,
-                'Your Debricked username',
+                'Your Debricked username. Set to an empty string if you use an access token.',
                 null
             )
             ->addArgument(
                 self::ARGUMENT_PASSWORD,
                 InputArgument::REQUIRED,
-                'Your Debricked password',
+                'Your Debricked password or access token',
                 null
             )
             ->addArgument(

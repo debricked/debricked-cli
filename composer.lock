@@ -4,24 +4,25 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "941f92325d5f91224259ebbf8d0f7cd2",
+    "content-hash": "636eb44e28b35bbddbdf0fbd53e6d44b",
     "packages": [
         {
             "name": "debricked/shared",
-            "version": "1.0.1",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/debricked/debricked-shared.git",
-                "reference": "3987d5d355bd1217c8363ecb9581db8346f7cf08"
+                "reference": "cd10e93cbcd1eb109d0ecfcffc1320fa417fba45"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/debricked/debricked-shared/zipball/3987d5d355bd1217c8363ecb9581db8346f7cf08",
-                "reference": "3987d5d355bd1217c8363ecb9581db8346f7cf08",
+                "url": "https://api.github.com/repos/debricked/debricked-shared/zipball/cd10e93cbcd1eb109d0ecfcffc1320fa417fba45",
+                "reference": "cd10e93cbcd1eb109d0ecfcffc1320fa417fba45",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.2.5",
+                "ext-json": "*",
+                "php": "^7.2.5|^8.0.0",
                 "symfony/http-client": "^4.3|^5.0",
                 "symfony/http-foundation": "^4.3|^5.0"
             },
@@ -57,9 +58,9 @@
             "support": {
                 "email": "sales@debricked.com",
                 "issues": "https://github.com/debricked/debricked-shared/issues",
-                "source": "https://github.com/debricked/debricked-shared/tree/master"
+                "source": "https://github.com/debricked/debricked-shared/tree/1.1.0"
             },
-            "time": "2020-02-05T20:47:35+00:00"
+            "time": "2021-06-01T13:25:37+00:00"
         },
         {
             "name": "psr/cache",
@@ -3811,15 +3812,12 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^7.2.5",
+        "php": "^7.4.0",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
         "ext-zip": "*"
     },
     "platform-dev": [],
-    "platform-overrides": {
-        "php": "7.2.5"
-    },
     "plugin-api-version": "2.0.0"
 }
