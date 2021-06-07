@@ -505,6 +505,49 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
     }
 
+    public function testUploadUsingAccessToken()
+    {
+        $this->setUpMocks(true);
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => '',
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => 'secret_access_token',
+            'repository-name' => 'test-upload-with-access-token',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'gitlab',
+            '--excluded-directories' => 'vendor,var',
+            '--branch-name' => 'test-branch',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Recursive search is disabled', $output);
+    }
+
+    public function testUploadUsingAccessTokenReal()
+    {
+        $this->setUpReal();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => '',
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_TOKEN'],
+            'repository-name' => 'test-upload-with-access-token-real',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'gitlab',
+            '--excluded-directories' => 'vendor,var',
+            '--branch-name' => 'test-branch',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Recursive search is disabled', $output);
+    }
 
     /** Helper function for tests that check our upload all files flag.
      * @param bool $uploadAll If we expect all files to be uploaded
@@ -556,11 +599,27 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->commandTester = new CommandTester($this->command);
     }
 
-    private function setUpMocks(): void
+    private function setUpMocks(bool $expectAccessToken = false): void
     {
         $ciUploadId = null;
-        $responseMockGenerator = function ($method, $url, $options) use ($ciUploadId) {
-            if (\strpos($url, '/api/1.0/open/uploads/dependencies/files') !== false) {
+        $hasAuthed = false;
+        $responseMockGenerator = function ($method, $url, $options) use (&$ciUploadId, &$hasAuthed, $expectAccessToken) {
+            if (!$expectAccessToken && \strpos($url, '/api/login_check') !== false) {
+                $hasAuthed = true;
+                return new MockResponse(\json_encode([
+                    'token' => 'eyImAToken',
+                ]));
+            } else if ($expectAccessToken && \strpos($url, '/api/login_refresh') !== false) {
+                $hasAuthed = true;
+                $this->assertArrayHasKey('body', $options);
+                $body = \json_decode($options['body'], true);
+                $this->assertEquals('secret_access_token', $body['refresh_token']);
+                return new MockResponse(\json_encode([
+                    'token' => 'eyImATokenFromAccessToken',
+                ]));
+            } else if (!$hasAuthed) {
+                return new MockResponse('', ['http_code'=> 401]);
+            } else if (\strpos($url, '/api/1.0/open/uploads/dependencies/files') !== false) {
                 if ($ciUploadId === null) $ciUploadId = \rand(100, 1_000_000);
                 return new MockResponse(\json_encode([
                     'ciUploadId' => $ciUploadId,
@@ -571,7 +630,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             } else if (\strpos($url, '/api/1.0/open/supported/dependency/files') !== false) {
                 return new MockResponse(<<<'EOD'
 {"dependencyFileNames":["apk\\.list","apt\\.list","((?!WORKSPACE|BUILD)).*(?:\\.bazel)","((?!WORKSPACE|BUILD)).*(?:\\.bzl)",".*_install\\.json","WORKSPACE\\.bazel","WORKSPACE\\.bzl","WORKSPACE","Podfile\\.lock","composer\\.lock","mix\\.lock","flatpak\\.list","Gemfile\\.lock","go\\.mod","Gopkg\\.lock","go\\.sum","build\\.gradle","build\\.gradle\\.kts","pom\\.xml","bower\\.json","package-lock\\.json","npm-shrinkwrap\\.json","package\\.json","yarn\\.lock",".*(?:\\.csproj)","packages\\.config","packages\\.lock\\.json","pacman\\.list","paket\\.lock","requirements.*(?:\\.txt)","Pipfile\\.lock","Pipfile","rpm\\.list","Cargo\\.lock","snap\\.list","\\.debricked-wfp-fingerprints\\.txt"],"dependencyFileNamesRequiresAllFiles":["WORKSPACE\\.bazel","WORKSPACE\\.bzl","WORKSPACE","build\\.gradle","build\\.gradle\\.kts","pom\\.xml"],"adjacentDependencyFileNames":{"build.gradle":".debricked-gradle-dependencies.txt","build.gradle.kts":".debricked-gradle-dependencies.txt","pom.xml":".debricked-maven-dependencies.tgf"}}
-EOD);
+EOD
+                );
             } else {
                 return new MockResponse('', ['http_code' => 404]);
             }

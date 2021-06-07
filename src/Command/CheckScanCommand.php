@@ -56,13 +56,13 @@ class CheckScanCommand extends Command
             ->addArgument(
                 FindAndUploadFilesCommand::ARGUMENT_USERNAME,
                 InputArgument::REQUIRED,
-                'Your Debricked username',
+                'Your Debricked username. Set to an empty string if you use an access token.',
                 null
             )
             ->addArgument(
                 FindAndUploadFilesCommand::ARGUMENT_PASSWORD,
                 InputArgument::REQUIRED,
-                'Your Debricked password',
+                'Your Debricked password or access token',
                 null
             )
             ->addArgument(
