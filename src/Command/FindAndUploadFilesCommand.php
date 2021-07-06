@@ -213,6 +213,7 @@ class FindAndUploadFilesCommand extends Command
         $searchDirectory = preg_replace('#/+#', '/', $searchDirectory); // remove duplicate slashes.
 
         $finder = new Finder();
+        $finder->ignoreDotFiles(false);
         $finder->files()->in($searchDirectory);
         if (empty($directoriesToExcludeString) === false && \is_array(
                 $directoriesToExcludeArray = \explode(',', $directoriesToExcludeString)
