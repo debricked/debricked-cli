@@ -76,7 +76,7 @@ class LicenseReportCommand extends Command
             )
             ->addArgument(
                 self::ARGUMENT_PROFILE,
-                InputArgument::REQUIRED,
+                InputArgument::OPTIONAL,
                 'The license risk profile you wish to use for this scan: internal, network, distributed, or consumer-electronic',
                 null,
             )
@@ -109,7 +109,11 @@ class LicenseReportCommand extends Command
             \strval($input->getArgument(FindAndUploadFilesCommand::ARGUMENT_PASSWORD))
         );
         $uploadId = \intval($input->getArgument(self::ARGUMENT_UPLOAD_ID));
-        $profile = \strval($input->getArgument(self::ARGUMENT_PROFILE));
+        $profile = $input->getArgument(self::ARGUMENT_PROFILE);
+        if ($profile !== null)
+        {
+            $profile = \strval($profile);
+        }
         $outputFilename = $input->getOption(self::OPTION_OUTPUT_FILE);
         $format = \strval($input->getOption(self::OPTION_FORMAT));
 
@@ -192,12 +196,16 @@ class LicenseReportCommand extends Command
     /**
      * @throws TransportExceptionInterface
      */
-    private function makeRequest(API $api, int $uploadId, string $profile, string $format, bool $snippets): ResponseInterface
+    private function makeRequest(API $api, int $uploadId, ?string $profile, string $format, bool $snippets): ResponseInterface
     {
         $query = [
             'scanId' => $uploadId,
-            'profile' => $profile,
         ];
+
+        if ($profile !== null)
+        {
+            $query = \array_merge($query, ['profile' => $profile]);
+        }
 
         if ($snippets) {
             $query = \array_merge($query, ['snippets' => '1']);

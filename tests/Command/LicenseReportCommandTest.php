@@ -26,20 +26,6 @@ class LicenseReportCommandTest extends KernelTestCase
     private Command $command;
     private CommandTester $commandTester;
 
-    public function testExecuteMissingProfile()
-    {
-        $this->setUpMocks([]);
-
-        $this->expectException(\Symfony\Component\Console\Exception\RuntimeException::class);
-        $this->commandTester->execute([
-            'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
-            LicenseReportCommand::ARGUMENT_UPLOAD_ID => '1337',
-            // LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-        ]);
-    }
-
     public function testExecuteInvalidFormat()
     {
         $this->setUpMocks([]);
@@ -134,6 +120,29 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
+            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses.*/s', $output);
+    }
+
+    public function testExecuteWithoutSnippetsDefaultProfileJsonStdout()
+    {
+        $this->setUpMocks([
+            new MockResponse('{"progress":0}', ['http_code' => 202]),
+            new MockResponse('{"progress":10}', ['http_code' => 202]),
+            new MockResponse('{"progress":50}', ['http_code' => 202]),
+            new MockResponse('{"progress":99}', ['http_code' => 202]),
+            new MockResponse('{"dependencyLicenses": []}', ['http_code' => 200]),
+        ]);
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
         ]);
 
