@@ -258,7 +258,7 @@ class FindAndUploadFilesCommand extends Command
         $uploadedAdjacentFilePaths = [];
         $progressBar = new ProgressBar($output);
         $progressBar->start();
-        $progressBar->setFormat(' %current% file(s) found [%bar%] %percent:3s%% %elapsed:6s% %memory:6s%');
+        $progressBar->setFormat(' %current% file(s) found [%bar%] %percent:3s%% %elapsed:6s%');
         $this->setProgressBarStyle($progressBar);
 
         foreach ($finder as $file) {
