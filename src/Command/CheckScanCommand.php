@@ -79,6 +79,7 @@ class CheckScanCommand extends Command
         'sendEmail' => 'an email notification',
         'markUnaffected' => 'the vulnerabilities to be marked as unaffected',
         'markVulnerable' => 'the vulnerabilities to be flagged as vulnerable',
+        'triggerWebhook' => 'a webhook notification',
     ];
 
     /**
