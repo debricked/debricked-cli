@@ -1,5 +1,5 @@
 # common stage
-FROM php:7.4-cli-alpine AS common
+FROM php:8.0-cli-alpine AS common
 
 RUN apk add bash git zlib-dev libzip-dev
 RUN docker-php-ext-install zip
@@ -11,7 +11,7 @@ WORKDIR /
 COPY . /home
 
 # dev stage
-FROM php:7.4-cli-alpine AS dev
+FROM php:8.0-cli-alpine AS dev
 COPY --from=common / /
 
 RUN apk add --no-cache $PHPIZE_DEPS && pecl install xdebug && docker-php-ext-enable xdebug

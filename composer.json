@@ -8,7 +8,7 @@
         "vulnerability-management",
         "dependency-management"
     ],
-    "homepage": "https://debricked.com/knowledge-base/articles/integrations/#debricked-cli",
+    "homepage": "https://debricked.com/documentation/integrations/cli.html",
     "authors": [
         {
             "name": "Oscar Reimer",
@@ -19,22 +19,32 @@
     "support": {
         "email": "sales@debricked.com",
         "issues": "https://github.com/debricked/debricked-cli/issues",
-        "docs": "https://debricked.com/knowledge-base/articles/integrations/#debricked-cli"
+        "docs": "https://debricked.com/documentation/integrations/cli.html"
     },
     "require": {
-        "php": "^7.4.0",
+        "php": "^7.4.0|^8.0.0",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
         "ext-zip": "*",
         "debricked/shared": "^1.1.0",
-        "symfony/console": "^4.3.0|^5.0.0",
-        "symfony/dotenv": "^4.3.0|^5.0.0",
-        "symfony/finder": "^4.3.0|^5.0.0",
+        "symfony/console": "^4.4.0|^5.0.0",
+        "symfony/dotenv": "^4.4.0|^5.0.0",
+        "symfony/finder": "^4.4.0|^5.0.0",
         "symfony/flex": "^1.1",
-        "symfony/framework-bundle": "^4.3.0|^5.0.0",
-        "symfony/http-client": "^4.3.0|^5.0.0",
-        "symfony/yaml": "^4.3.0|^5.0.0"
+        "symfony/framework-bundle": "^4.4.0|^5.0.0",
+        "symfony/http-client": "^4.4.0|^5.0.0",
+        "symfony/mime": "^4.4.0|^5.0.0",
+        "symfony/yaml": "^4.4.0|^5.0.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^2.14",
+        "phpstan/phpstan": "^0.12.2",
+        "phpstan/phpstan-phpunit": "^0.12.0",
+        "phpstan/phpstan-symfony": "^0.12.1",
+        "symfony/browser-kit": "^4.4.0|^5.0.0",
+        "symfony/css-selector": "^4.4.0|^5.0.0",
+        "symfony/phpunit-bridge": "^5.3"
     },
     "minimum-stability": "beta",
     "prefer-stable": true,
@@ -42,7 +52,10 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "platform": {
+            "php": "7.4"
+        }
     },
     "autoload": {
         "psr-4": {
@@ -58,6 +71,8 @@
         "paragonie/random_compat": "2.*",
         "symfony/polyfill-ctype": "*",
         "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php73": "*",
+        "symfony/polyfill-php72": "*",
         "symfony/polyfill-php71": "*",
         "symfony/polyfill-php70": "*",
         "symfony/polyfill-php56": "*"
@@ -79,15 +94,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "^4.3.0"
+            "require": "^5.0.0"
         }
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.14",
-        "phpstan/phpstan": "^0.12.2",
-        "phpstan/phpstan-phpunit": "^0.12.0",
-        "phpstan/phpstan-symfony": "^0.12.1",
-        "symfony/phpunit-bridge": "^5.1",
-        "symfony/test-pack": "^1.0"
     }
 }

@@ -46,7 +46,7 @@ class CompoundCommandTest extends KernelTestCase
             'commit-name' => 'test-release',
             'repository-url' => 'repository-url',
             'integration-name' => 'azureDevOps',
-            '--excluded-directories' => 'vendor,var,tests',
+            '--excluded-directories' => 'vendor,var,tests,bin',
         ]);
 
         $output = $this->commandTester->getDisplay();
