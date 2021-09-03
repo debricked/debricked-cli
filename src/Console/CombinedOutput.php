@@ -39,7 +39,7 @@ class CombinedOutput extends ConsoleOutput
     /**
      * {@inheritdoc}
      */
-    protected function doWrite($message, $newline): void
+    protected function doWrite(string $message, bool $newline): void
     {
         $this->buffer .= $message;
 

@@ -1,0 +1,8 @@
+{
+    "symfony/mime": {
+        "version": "v5.3.7"
+    },
+    "symfony/polyfill-intl-idn": {
+        "version": "v1.23.0"
+    }
+}

@@ -4,8 +4,6 @@ includes:
 	- vendor/phpstan/phpstan-phpunit/rules.neon
 parameters:
     autoload_files:
-        - %rootDir%/../../../bin/.phpunit/phpunit-6.5-0/vendor/autoload.php
+        - %rootDir%/../../../bin/.phpunit/phpunit-7.5-0/vendor/autoload.php
     symfony:
-        container_xml_path: '%rootDir%/../../../var/cache/dev/srcApp_KernelDevDebugContainer.xml'
-    ignoreErrors:
-        - '#constructor expects array<array\|string\|Symfony#' # Ignore error regarding FormDataPart constructor
+        container_xml_path: '%rootDir%/../../../var/cache/dev/App_KernelDevDebugContainer.xml'
