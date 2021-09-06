@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - '*'
 
 jobs:
   docker:
@@ -12,6 +14,19 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v2
+      -
+        name: Derive Docker tags
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            debricked/debricked-cli
+            ghcr.io/debricked/debricked-cli
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=edge
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -38,8 +53,5 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-           debricked/debricked-cli:latest
-           debricked/debricked-cli:7
-           ghcr.io/debricked/debricked-cli:latest
-           ghcr.io/debricked/debricked-cli:7
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
