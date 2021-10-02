@@ -81,7 +81,7 @@ class CheckScanCommandTest extends KernelTestCase
             'detailsUrl' => '',
             'automationRules' => $automationRules,
         ]));
-        $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
+        $httpClient = new MockHttpClient([$response], 'https://debricked.com');
         $command = new CheckScanCommand($httpClient, 'name');
 
         $commandTester = new CommandTester($command);
@@ -314,7 +314,7 @@ class CheckScanCommandTest extends KernelTestCase
     public function testQueueTimeTooLong()
     {
         $response = new MockResponse('The queue time was too long', ['http_code' => Response::HTTP_CREATED]);
-        $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
+        $httpClient = new MockHttpClient([$response], 'https://debricked.com');
         $command = new CheckScanCommand($httpClient, 'name');
 
         $commandTester = new CommandTester($command);
@@ -337,7 +337,7 @@ class CheckScanCommandTest extends KernelTestCase
             'unaffectedVulnerabilitiesFound' => 0,
             'detailsUrl' => '',
         ]));
-        $httpClient = new MockHttpClient([$response], 'https://app.debricked.com');
+        $httpClient = new MockHttpClient([$response], 'https://debricked.com');
         $command = new CheckScanCommand($httpClient, 'name');
 
         $commandTester = new CommandTester($command);
