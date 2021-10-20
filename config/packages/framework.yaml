@@ -23,3 +23,10 @@ framework:
                 max_redirects: 20
                 base_uri: '%env(string:DEBRICKED_API_URI)%'
                 timeout: 60
+                retry_failed:
+                    # Retry on rate limit, internal server error (should be temporary), bad gateway,
+                    # service unavailable and gateway timeout
+                    http_codes: [ 429, 500, 502, 503, 504 ]
+                    max_retries: 3
+                    delay: 3000
+                    multiplier: 5
