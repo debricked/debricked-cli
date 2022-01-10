@@ -172,7 +172,6 @@ class FindAndUploadFilesCommand extends Command
                 InputOption::VALUE_OPTIONAL,
                 'Default branch for the repository'
             );
-
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -519,15 +518,15 @@ class FindAndUploadFilesCommand extends Command
     /**
      * Uploads a dependency file to the service.
      *
-     * @param ?int        $uploadId             Reference to the CI upload id
-     * @param string      $repository           Repository name
-     * @param string      $commit               Commit id
-     * @param ?string     $branchName           Branch name
-     * @param ?string     $defaultBranchName    Default branch name
-     * @param string      $repositoryUrl        URL of repository
-     * @param API         $api                  API instance to debricked
-     * @param SplFileInfo $file                 File object
-     * @param string      $baseDirectory        base directory
+     * @param ?int        $uploadId          Reference to the CI upload id
+     * @param string      $repository        Repository name
+     * @param string      $commit            Commit id
+     * @param ?string     $branchName        Branch name
+     * @param ?string     $defaultBranchName Default branch name
+     * @param string      $repositoryUrl     URL of repository
+     * @param API         $api               API instance to debricked
+     * @param SplFileInfo $file              File object
+     * @param string      $baseDirectory     base directory
      *
      * @return string the pathname of the uploaded file, if successful
      */
@@ -540,8 +539,7 @@ class FindAndUploadFilesCommand extends Command
         string $repositoryUrl,
         API $api, SplFileInfo $file,
         string $baseDirectory
-    ): string
-    {
+    ): string {
         $formFields =
             [
                 'repositoryName' => $repository,
@@ -573,15 +571,15 @@ class FindAndUploadFilesCommand extends Command
     /**
      * Uploads a WFP fingerprint string to the service.
      *
-     * @param ?int             $uploadId             Reference to the CI upload id
-     * @param string           $repository           Repository name
-     * @param string           $commit               Commit id
-     * @param ?string          $branchName           Branch name
-     * @param ?string          $defaultBranchName    Default branch name
-     * @param string           $repositoryUrl        URL of repository
-     * @param API              $api                  API instance to debricked
-     * @param ?SnippetAnalysis $snippetAnalysis      snippet analysis instance
-     * @param string           $baseDirectory        Base directory
+     * @param ?int             $uploadId          Reference to the CI upload id
+     * @param string           $repository        Repository name
+     * @param string           $commit            Commit id
+     * @param ?string          $branchName        Branch name
+     * @param ?string          $defaultBranchName Default branch name
+     * @param string           $repositoryUrl     URL of repository
+     * @param API              $api               API instance to debricked
+     * @param ?SnippetAnalysis $snippetAnalysis   snippet analysis instance
+     * @param string           $baseDirectory     Base directory
      */
     protected function uploadWfpFingerprints(
         ?int &$uploadId,
@@ -593,8 +591,7 @@ class FindAndUploadFilesCommand extends Command
         API $api,
         ?SnippetAnalysis $snippetAnalysis,
         string $baseDirectory
-    ): void
-    {
+    ): void {
         if ($snippetAnalysis === null) {
             return;
         }
