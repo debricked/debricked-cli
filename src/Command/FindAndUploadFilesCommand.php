@@ -44,6 +44,7 @@ class FindAndUploadFilesCommand extends Command
     private const ARGUMENT_REPOSITORY_URL = 'repository-url';
     private const ARGUMENT_INTEGRATION_NAME = 'integration-name';
     private const OPTION_BRANCH_NAME = 'branch-name';
+    private const OPTION_DEFAULT_BRANCH = 'default-branch';
     private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
     private const OPTION_DISABLE_SNIPPETS = 'disable-snippets';
     private const OPTION_KEEP_ZIP = 'keep-zip';
@@ -164,6 +165,12 @@ class FindAndUploadFilesCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'The author of the commit',
                 ''
+            )
+            ->addOption(
+                self::OPTION_DEFAULT_BRANCH,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Default branch for the repository'
             );
     }
 
@@ -299,6 +306,7 @@ class FindAndUploadFilesCommand extends Command
                         $repository,
                         $commit,
                         \strval($input->getOption(self::OPTION_BRANCH_NAME)),
+                        \strval($input->getOption(self::OPTION_DEFAULT_BRANCH)),
                         \strval($input->getArgument(self::ARGUMENT_REPOSITORY_URL)),
                         $api,
                         $file,
@@ -319,6 +327,7 @@ class FindAndUploadFilesCommand extends Command
                 $repository,
                 $commit,
                 \strval($input->getOption(self::OPTION_BRANCH_NAME)),
+                \strval($input->getOption(self::OPTION_DEFAULT_BRANCH)),
                 \strval($input->getArgument(self::ARGUMENT_REPOSITORY_URL)),
                 $api,
                 $snippetAnalysis,
@@ -509,19 +518,28 @@ class FindAndUploadFilesCommand extends Command
     /**
      * Uploads a dependency file to the service.
      *
-     * @param ?int        $uploadId      reference to the CI upload id
-     * @param string      $repository    repository name
-     * @param string      $commit        commit id
-     * @param ?string     $branchName    Branch name
-     * @param string      $repositoryUrl URL of repository
-     * @param API         $api           API instance to debricked
-     * @param SplFileInfo $file          File object
-     * @param string      $baseDirectory base directory
+     * @param ?int        $uploadId          Reference to the CI upload id
+     * @param string      $repository        Repository name
+     * @param string      $commit            Commit id
+     * @param ?string     $branchName        Branch name
+     * @param ?string     $defaultBranchName Default branch name
+     * @param string      $repositoryUrl     URL of repository
+     * @param API         $api               API instance to debricked
+     * @param SplFileInfo $file              File object
+     * @param string      $baseDirectory     base directory
      *
      * @return string the pathname of the uploaded file, if successful
      */
-    protected function uploadDependencyFile(?int &$uploadId, string $repository, string $commit, ?string $branchName, string $repositoryUrl, API $api, SplFileInfo $file, string $baseDirectory): string
-    {
+    protected function uploadDependencyFile(
+        ?int &$uploadId,
+        string $repository,
+        string $commit,
+        ?string $branchName,
+        ?string $defaultBranchName,
+        string $repositoryUrl,
+        API $api, SplFileInfo $file,
+        string $baseDirectory
+    ): string {
         $formFields =
             [
                 'repositoryName' => $repository,
@@ -530,6 +548,10 @@ class FindAndUploadFilesCommand extends Command
 
         if (empty($branchName) === false) {
             $formFields['branchName'] = $branchName;
+        }
+
+        if (empty($defaultBranchName) === false) {
+            $formFields['defaultBranchName'] = $defaultBranchName;
         }
 
         if ($uploadId !== null) {
@@ -549,17 +571,27 @@ class FindAndUploadFilesCommand extends Command
     /**
      * Uploads a WFP fingerprint string to the service.
      *
-     * @param ?int             $uploadId        reference to the CI upload id
-     * @param string           $repository      repository name
-     * @param string           $commit          commit id
-     * @param ?string          $branchName      Branch name
-     * @param string           $repositoryUrl   URL of repository
-     * @param API              $api             API instance to debricked
-     * @param ?SnippetAnalysis $snippetAnalysis snippet analysis instance
-     * @param string           $baseDirectory   base directory
+     * @param ?int             $uploadId          Reference to the CI upload id
+     * @param string           $repository        Repository name
+     * @param string           $commit            Commit id
+     * @param ?string          $branchName        Branch name
+     * @param ?string          $defaultBranchName Default branch name
+     * @param string           $repositoryUrl     URL of repository
+     * @param API              $api               API instance to debricked
+     * @param ?SnippetAnalysis $snippetAnalysis   snippet analysis instance
+     * @param string           $baseDirectory     Base directory
      */
-    protected function uploadWfpFingerprints(?int &$uploadId, string $repository, string $commit, ?string $branchName, string $repositoryUrl, API $api, ?SnippetAnalysis $snippetAnalysis, string $baseDirectory): void
-    {
+    protected function uploadWfpFingerprints(
+        ?int &$uploadId,
+        string $repository,
+        string $commit,
+        ?string $branchName,
+        ?string $defaultBranchName,
+        string $repositoryUrl,
+        API $api,
+        ?SnippetAnalysis $snippetAnalysis,
+        string $baseDirectory
+    ): void {
         if ($snippetAnalysis === null) {
             return;
         }
@@ -578,6 +610,10 @@ class FindAndUploadFilesCommand extends Command
 
         if (empty($branchName) === false) {
             $formFields['branchName'] = $branchName;
+        }
+
+        if (empty($defaultBranchName) === false) {
+            $formFields['defaultBranchName'] = $defaultBranchName;
         }
 
         if ($uploadId !== null) {
