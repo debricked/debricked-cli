@@ -519,6 +519,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'integration-name' => 'gitlab',
             '--excluded-directories' => 'vendor,var',
             '--branch-name' => 'test-branch',
+            '--default-branch' => 'main',
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -539,6 +540,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'commit-name' => 'test-commit',
             'repository-url' => 'repository-url',
             'integration-name' => 'gitlab',
+            '--default-branch' => 'main',
             '--excluded-directories' => 'vendor,var',
             '--branch-name' => 'test-branch',
         ]);
