@@ -328,6 +328,7 @@ class FindAndUploadFilesCommand extends Command
                 $repository,
                 $commit,
                 \strval($input->getOption(self::OPTION_BRANCH_NAME)),
+                \strval($input->getOption(self::OPTION_DEFAULT_BRANCH)),
                 \strval($input->getArgument(self::ARGUMENT_REPOSITORY_URL)),
                 $api,
                 $snippetAnalysis,
