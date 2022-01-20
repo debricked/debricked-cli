@@ -95,6 +95,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
                     FindAndUploadFilesCommand::ARGUMENT_PASSWORD
                 ),
                 CheckScanCommand::ARGUMENT_UPLOAD_ID => $uploadId,
+                '--' . self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN => $input->getOption(self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN)
             ];
         $checkScanInput = new ArrayInput($checkScanArguments);
         $checkScanReturnCode = $checkScanCommand->run($checkScanInput, $output);

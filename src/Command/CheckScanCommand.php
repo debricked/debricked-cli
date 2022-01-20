@@ -13,6 +13,7 @@ namespace App\Command;
 use Debricked\Shared\API\API;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -70,6 +71,13 @@ class CheckScanCommand extends Command
                 InputArgument::REQUIRED,
                 "Upload id you got from running $findAndUploadCommand",
                 null
+            )
+            ->addOption(
+                FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
+                null,
+                InputOption::VALUE_NONE,
+                'Use this option to disable skip scan from ever triggering, even if you have skip scan set to true in your environment variables. 
+                Default is to allow skip scan triggering because of long queue times (=false).'
             );
     }
 
@@ -172,6 +180,7 @@ class CheckScanCommand extends Command
             'vulnerabilitiesFound' => 0,
         ];
 
+        $disableConditionalSkipScan = \boolval($input->getOption(FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN));
         try {
             while (true) {
                 $statusResponse = $api->makeApiCall(
@@ -185,19 +194,24 @@ class CheckScanCommand extends Command
                 );
 
                 $statusCode = $statusResponse->getStatusCode();
-                if ($statusCode === Response::HTTP_CREATED) {
-                    break;
+                if ($disableConditionalSkipScan === false && $statusCode === Response::HTTP_CREATED) {
+                    break; //if conditional skip scan triggered but we have disabled it, shall we return another message?
                 }
 
                 $status = \json_decode($statusResponse->getContent(), true);
-                if (\intval($status['progress']) !== -1) {
+                if (isset($status['progress']) && \intval($status['progress']) !== -1) {
                     $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected)");
                 }
+                // what if we never return http_ok?
                 if ($statusCode === Response::HTTP_OK) {
                     break;
                 }
 
-                $progressBar->setProgress($status['progress']);
+                if (isset($status['progress']))
+                {
+                    $progressBar->setProgress($status['progress']);
+                }
+
                 sleep(1);
             }
         } catch (TransportExceptionInterface $e) {
@@ -214,7 +228,7 @@ class CheckScanCommand extends Command
 
         $io->newLine(2);
 
-        if ($statusCode === Response::HTTP_CREATED) {
+        if ($disableConditionalSkipScan === false && $statusCode === Response::HTTP_CREATED) {
             $urlMessage = $statusResponse->getContent();
             $io->text($urlMessage);
 

@@ -2,12 +2,17 @@
 
 namespace App\Tests\Command;
 
+use App\Command\CheckScanCommand;
 use App\Command\CompoundCommand;
 use App\Command\FindAndUploadFilesCommand;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Tests @see CompoundCommand.
@@ -51,5 +56,27 @@ class CompoundCommandTest extends KernelTestCase
         $this->assertStringContainsString('Scan completed', $output);
         $this->assertStringContainsString('have been marked as unaffected', $output);
         $this->assertStringContainsString('Please visit', $output);
+    }
+
+    public function testDisableConditionalSkipScan()
+    {
+        //test when disable-conditional-skip-scan is null (this is the same as true). Scan should always complete
+        $responseQueueTimeTooLong = new MockResponse('The queue time was too long', ['http_code' => Response::HTTP_CREATED]);
+        $httpClient = new MockHttpClient([$responseQueueTimeTooLong], 'https://debricked.com');
+        $command = new CompoundCommand($httpClient, 'name');
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-product',
+            'commit-name' => 'test-release',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'azureDevOps',
+            '--' . FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN => null
+        ]);
+
+        $output = $commandTester->getDisplay();
+        $this->assertEquals(0, $commandTester->getStatusCode(), $output);
+        $this->assertContains('Scan completed', $output);
     }
 }
