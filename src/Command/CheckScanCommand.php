@@ -76,8 +76,7 @@ class CheckScanCommand extends Command
                 FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
                 null,
                 InputOption::VALUE_NONE,
-                'Use this option to disable skip scan from ever triggering, even if you have skip scan set to true in your environment variables. 
-                Default is to allow skip scan triggering because of long queue times (=false).'
+                'Use this option to disable skip scan from ever triggering. Default is to allow skip scan triggering because of long queue times (=false).'
             );
     }
 
@@ -195,14 +194,14 @@ class CheckScanCommand extends Command
 
                 $statusCode = $statusResponse->getStatusCode();
                 if ($disableConditionalSkipScan === false && $statusCode === Response::HTTP_CREATED) {
-                    break; //if conditional skip scan triggered but we have disabled it, shall we return another message?
+                    break;
                 }
 
                 $status = \json_decode($statusResponse->getContent(), true);
                 if (isset($status['progress']) && \intval($status['progress']) !== -1) {
                     $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected)");
                 }
-                // what if we never return http_ok?
+
                 if ($statusCode === Response::HTTP_OK) {
                     break;
                 }

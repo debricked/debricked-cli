@@ -335,7 +335,7 @@ class CheckScanCommandTest extends KernelTestCase
             ['http_code' => Response::HTTP_OK]
         );
 
-        //test when option is null (same as true but no value given to it)s
+        //test when option is null (same as true but no value given to it)
         $httpClient = new MockHttpClient([$responseQueueTimeTooLong, $responseScanFinished], 'https://debricked.com');
         $this->assertQueueTimeTooLongConditionalSkipScan($httpClient, false, null);
 
