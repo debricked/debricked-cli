@@ -204,7 +204,7 @@ class CheckScanCommand extends Command
             $io->error("\n\nAn error occurred while getting scan status: {$e->getMessage()}");
 
             return 1;
-        } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+        } catch (ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
             /* @noinspection PhpUnhandledExceptionInspection */
             $io->error("\n\nAn error occurred while getting scan status: {$e->getResponse()->getContent(false)}");
 

@@ -24,12 +24,9 @@ class CheckScanCommandTest extends KernelTestCase
      */
     private $command;
 
-    /**
-     * @var CommandTester
-     */
-    private $commandTester;
+    private CommandTester $commandTester;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -50,7 +47,7 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/No\s+upload\s+with\s+ID/', $output);
+        $this->assertMatchesRegularExpression('/No\s+upload\s+with\s+ID/', $output);
     }
 
     public function testExecuteInvalidCredentials()
@@ -64,7 +61,7 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/Invalid\s+credentials./', $output);
+        $this->assertMatchesRegularExpression('/Invalid\s+credentials./', $output);
     }
 
     private function runAutomationsActionTest(
@@ -99,29 +96,29 @@ class CheckScanCommandTest extends KernelTestCase
     public function testAutomationsActionNone()
     {
         $output = $this->runAutomationsActionTest('none');
-        $this->assertNotContains('An automation rule triggered a pipeline warning.', $output);
-        $this->assertNotContains('An automation rule triggered a pipeline failure.', $output);
+        $this->assertStringNotContainsString('An automation rule triggered a pipeline warning.', $output);
+        $this->assertStringNotContainsString('An automation rule triggered a pipeline failure.', $output);
     }
 
     public function testAutomationsActionWarn()
     {
         $output = $this->runAutomationsActionTest('warn');
-        $this->assertContains('An automation rule triggered a pipeline warning.', $output);
-        $this->assertNotContains('An automation rule triggered a pipeline failure.', $output);
+        $this->assertStringContainsString('An automation rule triggered a pipeline warning.', $output);
+        $this->assertStringNotContainsString('An automation rule triggered a pipeline failure.', $output);
     }
 
     public function testAutomationsActionFail()
     {
         $output = $this->runAutomationsActionTest('fail', 2);
-        $this->assertContains('An automation rule triggered a pipeline failure.', $output);
-        $this->assertNotContains('An automation rule triggered a pipeline warning.', $output);
+        $this->assertStringContainsString('An automation rule triggered a pipeline failure.', $output);
+        $this->assertStringNotContainsString('An automation rule triggered a pipeline warning.', $output);
     }
 
     public function testPolicyEngineActionFail()
     {
         $output = $this->runAutomationsActionTest('fail', 2, 'policyEngineAction');
-        $this->assertContains('An automation rule triggered a pipeline failure.', $output);
-        $this->assertNotContains('An automation rule triggered a pipeline warning.', $output);
+        $this->assertStringContainsString('An automation rule triggered a pipeline failure.', $output);
+        $this->assertStringNotContainsString('An automation rule triggered a pipeline warning.', $output);
     }
 
     public function testAutomationOutputUntriggered()
@@ -134,11 +131,11 @@ class CheckScanCommandTest extends KernelTestCase
             ],
         ]);
 
-        $this->assertContains("\nOutput from automations\n", $output);
-        $this->assertContains("\n 1 rule was checked:\n", $output);
-        $this->assertContains("\n | untriggered description<fg=red>", $output);
-        $this->assertContains("\n   Manage rule: link-to-rule\n", $output);
-        $this->assertContains("\n ✔ The rule did not trigger\n", $output);
+        $this->assertStringContainsString("\nOutput from automations\n", $output);
+        $this->assertStringContainsString("\n 1 rule was checked:\n", $output);
+        $this->assertStringContainsString("\n | untriggered description<fg=red>", $output);
+        $this->assertStringContainsString("\n   Manage rule: link-to-rule\n", $output);
+        $this->assertStringContainsString("\n ✔ The rule did not trigger\n", $output);
     }
 
     public function testAutomationOutputPipelineFailure()
@@ -154,12 +151,12 @@ class CheckScanCommandTest extends KernelTestCase
             ],
         ]);
 
-        $this->assertContains("\nOutput from automations\n", $output);
-        $this->assertContains("\n 1 rule was checked:\n", $output);
-        $this->assertContains("\n | rule description 1", $output);
-        $this->assertContains("\n | rule description 2", $output);
-        $this->assertContains("\n   Manage rule: link-to-rule\n", $output);
-        $this->assertContains("\n ⨯ The rule triggered, causing a pipeline failure and an email notification\n", $output);
+        $this->assertStringContainsString("\nOutput from automations\n", $output);
+        $this->assertStringContainsString("\n 1 rule was checked:\n", $output);
+        $this->assertStringContainsString("\n | rule description 1", $output);
+        $this->assertStringContainsString("\n | rule description 2", $output);
+        $this->assertStringContainsString("\n   Manage rule: link-to-rule\n", $output);
+        $this->assertStringContainsString("\n ⨯ The rule triggered, causing a pipeline failure and an email notification\n", $output);
     }
 
     public function testAutomationOutputPipelineWarning()
@@ -175,12 +172,12 @@ class CheckScanCommandTest extends KernelTestCase
             ],
         ]);
 
-        $this->assertContains("\nOutput from automations\n", $output);
-        $this->assertContains("\n 1 rule was checked:\n", $output);
-        $this->assertContains("\n | rule description 1", $output);
-        $this->assertContains("\n | rule description 2", $output);
-        $this->assertContains("\n   Manage rule: link-to-rule\n", $output);
-        $this->assertContains("\n ⨯ The rule triggered, causing a pipeline warning\n", $output);
+        $this->assertStringContainsString("\nOutput from automations\n", $output);
+        $this->assertStringContainsString("\n 1 rule was checked:\n", $output);
+        $this->assertStringContainsString("\n | rule description 1", $output);
+        $this->assertStringContainsString("\n | rule description 2", $output);
+        $this->assertStringContainsString("\n   Manage rule: link-to-rule\n", $output);
+        $this->assertStringContainsString("\n ⨯ The rule triggered, causing a pipeline warning\n", $output);
     }
 
     public function testAutomationOutputMultipleRules()
@@ -326,7 +323,7 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $commandTester->getDisplay();
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
-        $this->assertContains('The queue time was too long', $output);
+        $this->assertStringContainsString('The queue time was too long', $output);
     }
 
     public function testVulnerabilitiesFound()
@@ -349,6 +346,6 @@ class CheckScanCommandTest extends KernelTestCase
 
         $output = $commandTester->getDisplay();
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
-        $this->assertContains('VULNERABILITIES FOUND', $output);
+        $this->assertStringContainsString('VULNERABILITIES FOUND', $output);
     }
 }

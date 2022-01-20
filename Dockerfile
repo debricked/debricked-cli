@@ -10,9 +10,29 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ 
 WORKDIR /
 COPY . /home
 
-# dev stage
-FROM php:8.0-cli-alpine AS dev
+# test stage
+FROM scratch AS test
 COPY --from=common / /
+
+CMD /home/ci/test.sh
+
+# cli stage
+FROM scratch AS cli
+COPY --from=common / /
+
+# Create suitable point where we expect dependency files to be mounted.
+RUN mkdir /data
+
+# Run script once to install deps once and for all.
+RUN /home/entrypoint.sh
+
+ENTRYPOINT ["/home/entrypoint.sh"]
+
+# Default is same behaviour as if no arguments are given.
+CMD []
+
+# dev stage
+FROM common AS dev
 
 RUN apk add --no-cache $PHPIZE_DEPS && pecl install xdebug && docker-php-ext-enable xdebug
 
@@ -42,24 +62,3 @@ WORKDIR /home
 
 USER 1001:1001
 CMD bash
-
-# test stage
-FROM scratch AS test
-COPY --from=common / /
-
-CMD /home/ci/test.sh
-
-# cli stage
-FROM scratch AS cli
-COPY --from=common / /
-
-# Create suitable point where we expect dependency files to be mounted.
-RUN mkdir /data
-
-# Run script once to install deps once and for all.
-RUN /home/entrypoint.sh
-
-ENTRYPOINT ["/home/entrypoint.sh"]
-
-# Default is same behaviour as if no arguments are given.
-CMD []

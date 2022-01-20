@@ -6,13 +6,13 @@ if (!file_exists(dirname(__DIR__).'/vendor/symfony/phpunit-bridge/bin/simple-php
     exit(1);
 }
 
-if (false === getenv('SYMFONY_PHPUNIT_VERSION')) {
-    putenv('SYMFONY_PHPUNIT_VERSION=7.5');
+if (getenv('SYMFONY_PHPUNIT_VERSION') === false) {
+    putenv('SYMFONY_PHPUNIT_VERSION=9.5');
 }
-if (false === getenv('SYMFONY_PHPUNIT_REMOVE')) {
+if (getenv('SYMFONY_PHPUNIT_REMOVE') === false) {
     putenv('SYMFONY_PHPUNIT_REMOVE=');
 }
-if (false === getenv('SYMFONY_PHPUNIT_DIR')) {
+if (getenv('SYMFONY_PHPUNIT_DIR') === false) {
     putenv('SYMFONY_PHPUNIT_DIR='.__DIR__.'/.phpunit');
 }
 

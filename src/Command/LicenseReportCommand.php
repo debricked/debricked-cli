@@ -168,7 +168,7 @@ class LicenseReportCommand extends Command
             $io->error("\n\nAn error occurred while generating license report: {$e->getMessage()}");
 
             return 1;
-        } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+        } catch (ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
             /* @noinspection PhpUnhandledExceptionInspection */
             $io->error("\n\nAn error occurred while generating license report: {$e->getResponse()->getContent(false)}");
 

@@ -20,4 +20,4 @@ phpdbg -qrr -d memory_limit=17179869184 bin/phpunit
 
 php -d memory_limit=-1 vendor/bin/phpstan analyse src/ --level=7
 
-vendor/bin/php-cs-fixer fix --config=.php_cs.dist -v --dry-run --stop-on-violation --diff --using-cache=no
+vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php -v --dry-run --stop-on-violation --diff --using-cache=no

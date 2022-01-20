@@ -21,10 +21,7 @@ class CompoundCommandTest extends KernelTestCase
      */
     private $command;
 
-    /**
-     * @var CommandTester
-     */
-    private $commandTester;
+    private CommandTester $commandTester;
 
     public function setUp(): void
     {
@@ -51,8 +48,8 @@ class CompoundCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertContains('Scan completed', $output);
-        $this->assertContains('have been marked as unaffected', $output);
-        $this->assertContains('Please visit', $output);
+        $this->assertStringContainsString('Scan completed', $output);
+        $this->assertStringContainsString('have been marked as unaffected', $output);
+        $this->assertStringContainsString('Please visit', $output);
     }
 }

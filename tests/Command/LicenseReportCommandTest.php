@@ -5,8 +5,6 @@ namespace App\Tests\Command;
 use App\Command\CheckScanCommand;
 use App\Command\FindAndUploadFilesCommand;
 use App\Command\LicenseReportCommand;
-use http\Exception\RuntimeException;
-use SebastianBergmann\Environment\Runtime;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -14,7 +12,6 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Tests @see LicenseReportCommand.
@@ -36,12 +33,12 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             LicenseReportCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::OPTION_FORMAT => 'yaml',
+            '--'.LicenseReportCommand::OPTION_FORMAT => 'yaml',
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/Invalid format/', $output);
+        $this->assertMatchesRegularExpression('/Invalid format/', $output);
     }
 
     public function testExecuteInvalidCredentials()
@@ -61,7 +58,7 @@ class LicenseReportCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/Invalid\s+credentials./', $output);
+        $this->assertMatchesRegularExpression('/Invalid\s+credentials./', $output);
     }
 
     public function testExecuteWrongRoleOrNotOwnScan()
@@ -80,7 +77,7 @@ class LicenseReportCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/Access Denied/', $output);
+        $this->assertMatchesRegularExpression('/Access Denied/', $output);
     }
 
     public function testExecuteInternalServerError()
@@ -101,7 +98,7 @@ class LicenseReportCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/Failed\s+to\s+perform\s+snippet\s+scan/', $output);
+        $this->assertMatchesRegularExpression('/Failed\s+to\s+perform\s+snippet\s+scan/', $output);
     }
 
     public function testExecuteWithoutSnippetsJsonStdout()
@@ -120,12 +117,12 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+            '--'.LicenseReportCommand::OPTION_FORMAT => 'json',
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses.*/s', $output);
+        $this->assertMatchesRegularExpression('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses.*/s', $output);
     }
 
     public function testExecuteWithoutSnippetsDefaultProfileJsonStdout()
@@ -143,12 +140,12 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
-            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
+            '--'.LicenseReportCommand::OPTION_FORMAT => 'json',
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses.*/s', $output);
+        $this->assertMatchesRegularExpression('/License\s+report\s+generation\s+finished.\s+See below.*dependencyLicenses.*/s', $output);
     }
 
     public function testExecuteSuccessWithSnippetsCsvStdout()
@@ -167,13 +164,13 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::OPTION_FORMAT => 'csv',
-            '--' . LicenseReportCommand::OPTION_SNIPPETS => null,
+            '--'.LicenseReportCommand::OPTION_FORMAT => 'csv',
+            '--'.LicenseReportCommand::OPTION_SNIPPETS => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below.*a,b,c,d/s', $output);
+        $this->assertMatchesRegularExpression('/License\s+report\s+generation\s+finished.\s+See below.*a,b,c,d/s', $output);
     }
 
     public function testExecuteSuccessWithSnippetsJsonStdout()
@@ -192,15 +189,15 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
-            '--' . LicenseReportCommand::OPTION_SNIPPETS => null,
+            '--'.LicenseReportCommand::OPTION_FORMAT => 'json',
+            '--'.LicenseReportCommand::OPTION_SNIPPETS => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See below/', $output);
-        $this->assertRegExp('/dependencyLicenses/', $output);
-        $this->assertRegExp('/snippetLicenses/', $output);
+        $this->assertMatchesRegularExpression('/License\s+report\s+generation\s+finished.\s+See below/', $output);
+        $this->assertMatchesRegularExpression('/dependencyLicenses/', $output);
+        $this->assertMatchesRegularExpression('/snippetLicenses/', $output);
     }
 
     public function testExecuteSuccessWithSnippetsJsonToFile()
@@ -225,15 +222,15 @@ class LicenseReportCommandTest extends KernelTestCase
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
             LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-            '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
-            '--' . LicenseReportCommand::OPTION_OUTPUT_FILE => $outputFilename,
-            '--' . LicenseReportCommand::OPTION_SNIPPETS => null,
+            '--'.LicenseReportCommand::OPTION_FORMAT => 'json',
+            '--'.LicenseReportCommand::OPTION_OUTPUT_FILE => $outputFilename,
+            '--'.LicenseReportCommand::OPTION_SNIPPETS => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertRegExp('/License\s+report\s+generation\s+finished.\s+See\s+test_report\.json\s+for\s+the/s', $output);
-        $this->assertNotRegExp('/dependencyLicenses/', $output);
+        $this->assertMatchesRegularExpression('/License\s+report\s+generation\s+finished.\s+See\s+test_report\.json\s+for\s+the/s', $output);
+        $this->assertDoesNotMatchRegularExpression('/dependencyLicenses/', $output);
 
         $this->assertEquals($reportContent, \file_get_contents($outputFilename));
         $filesystem->remove($outputFilename);
@@ -266,8 +263,8 @@ class LicenseReportCommandTest extends KernelTestCase
                 FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
                 CheckScanCommand::ARGUMENT_UPLOAD_ID => '1337',
                 LicenseReportCommand::ARGUMENT_PROFILE => 'distributed',
-                '--' . LicenseReportCommand::OPTION_FORMAT => 'json',
-                '--' . LicenseReportCommand::OPTION_OUTPUT_FILE => $outputFilename,
+                '--'.LicenseReportCommand::OPTION_FORMAT => 'json',
+                '--'.LicenseReportCommand::OPTION_OUTPUT_FILE => $outputFilename,
             ]);
             $this->fail('Should get exception');
         } catch (\Exception $e) {

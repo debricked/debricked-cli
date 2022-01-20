@@ -208,7 +208,7 @@ class FindAndUploadFilesCommand extends Command
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
 
             return 1;
-        } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+        } catch (ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
             /* @noinspection PhpUnhandledExceptionInspection */
             $io->error("Failed to get supported dependency file names: {$e->getResponse()->getContent(false)}");
 
@@ -294,7 +294,11 @@ class FindAndUploadFilesCommand extends Command
                         $uploadedAdjacentFilePaths[] = $adjacentRelative;
                     } elseif (!$uploadAllFiles) {
                         $optionNameUploadAllFiles = self::OPTION_UPLOAD_ALL_FILES;
-                        $io->warning("Skipping {$absolutePathname}.\n\nFound file which requires that all files needs to be uploaded. Please enable the {$optionNameUploadAllFiles} option if you want to scan this file.");
+                        $io->warning(
+                            "Skipping {$absolutePathname}.\n\nFound file which requires dependency tree (recommended) or that all files needs to be uploaded.".
+                            ' Please generate the dependency tree before running this command (recommended, <href=https://debricked.com/docs/language-support/java-kotlin.html#source-codeless-scans>see how in our documentation here</>)'.
+                            " or enable the {$optionNameUploadAllFiles} option if you want to scan this file."
+                        );
 
                         continue;
                     }
@@ -375,7 +379,7 @@ class FindAndUploadFilesCommand extends Command
                     ]
                 );
                 $response->getContent();
-            } catch (TransportExceptionInterface | ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+            } catch (TransportExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
                 $io->warning("Failed to conclude upload, error: {$e->getMessage()}");
 
                 return 2;
@@ -509,7 +513,7 @@ class FindAndUploadFilesCommand extends Command
         } catch (TransportExceptionInterface $e) {
             /* @noinspection PhpUnhandledExceptionInspection */
             throw new \Exception("Failed to upload {$filename}, error: {$e->getMessage()}");
-        } catch (ClientExceptionInterface | RedirectionExceptionInterface | ServerExceptionInterface $e) {
+        } catch (ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
             /* @noinspection PhpUnhandledExceptionInspection */
             throw new \Exception("Failed to upload {$filename}, error: {$e->getResponse()->getContent(false)}");
         }

@@ -23,7 +23,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     private function zipFileContents($repositoryName, $commitName): array
     {
         // Helper function to return the contents of a zip file for a given upload. Assumes --keep-zip is set.
-        $zipFilename = \str_replace('/', '-', "{$repositoryName}_{$commitName}.zip");
+        $zipFilename = \str_replace('/', '-', "{$repositoryName}_$commitName.zip");
         $zip = new \ZipArchive();
         $result = $zip->open($zipFilename, \ZipArchive::CHECKCONS);
         $this->assertTrue($result === true, 'Failed to open zip file!');
@@ -162,11 +162,33 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('tests/DependencyFiles/package-lock.json', $output);
         $this->assertStringNotContainsString('Successfully created zip file', $output);
         $this->assertStringNotContainsString('dependency tree files', $output);
-        $this->assertRegExp('/Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+/', $output);
-        $this->assertRegExp('/Skipping\s+\/home\/tests\/DependencyFiles\/Gradle\/MPChartExample\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
-        $this->assertRegExp('/Skipping\s+\/home\/tests\/DependencyFiles\/Gradle\/MPChartLib\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
-        $this->assertRegExp('/Skipping\s+\/home\/tests\/DependencyFiles\/Gradle\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
+        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartExample\/build\.gradle', $output);
+        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartLib\/build\.gradle', $output);
+        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/build\.gradle', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
+    }
+
+    private function assertMatchesSkippingRegexWithFileName(string $fileNameRegex, string $output, bool $not = false): void
+    {
+        $regex = 'Skipping\s+' .
+            $fileNameRegex .
+            '\.\s+Found\s+file\s+which\s+requires\s+dependency\s+tree\s+\(recommended\)\s+or\s+that\s+all\s+files\s+needs\s+to\s+be uploaded\.\s+Please\s+generate\s+the\s+dependency\s+tree\s+before\s+running\s+this\s+command\s+\(recommended,\s+<[^>]+>see\s+how\s+in\s+our\s+documentation\s+here<\/>\)\s+or\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file\.';
+        $regex = "/$regex/";
+
+        if ($not === false)
+        {
+            $this->assertMatchesRegularExpression(
+                $regex,
+                $output
+            );
+        }
+        else
+        {
+            $this->assertDoesNotMatchRegularExpression(
+                $regex,
+                $output
+            );
+        }
     }
 
     public function testUploadAllFiles()
@@ -208,8 +230,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         // Check that zip filenames don't start with / or have multiple // inside them.
         foreach ($files as $file) {
-            $this->assertNotRegexp('#^/#', $file);
-            $this->assertNotRegexp('#//#', $file);
+            $this->assertDoesNotMatchRegularExpression('#^/#', $file);
+            $this->assertDoesNotMatchRegularExpression('#//#', $file);
         }
 
         // Check that we have a lot of files in the zip.
@@ -255,13 +277,13 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         // Check that nothing except the base directory is in the zip.
         foreach ($files as $file) {
-            $this->assertRegexp('#^tests/DependencyFiles/Gradle#', $file);
+            $this->assertMatchesRegularExpression('#^tests/DependencyFiles/Gradle#', $file);
         }
 
         $this->assertNotContains('tests/AdjacentFiles/Gradle/build.gradle', $files);
         // Check that we have a reasonable amount of files in the zip.
-        $this->assertTrue(count($files) >= 6, 'Too few files in zip, found '.count($files));
-        $this->assertTrue(count($files) <= 14, 'Too many files in zip, found '.count($files));
+        $this->assertGreaterThanOrEqual(6, count($files), 'Too few files in zip, found '.count($files));
+        $this->assertLessThanOrEqual(14, count($files), 'Too many files in zip, found '.count($files));
     }
 
     public function testUploadsAdjacentDependencyTreeFilesAsZip()
@@ -291,10 +313,9 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('Gradle/build.gradle ', $output);
         $this->assertStringContainsString('Successfully created zip file with 3 extra file(s)', $output);
         $this->assertStringContainsString('Successfully uploaded 3 dependency tree files', $output);
-        $this->assertNotRegExp('/Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+/', $output);
-        $this->assertNotRegExp('/Skipping\s+\/home\/tests\/DependencyFiles\/Gradle\/MPChartExample\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
-        $this->assertNotRegExp('/Skipping\s+\/home\/tests\/DependencyFiles\/Gradle\/MPChartLib\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
-        $this->assertNotRegExp('/Skipping\s+\/home\/tests\/DependencyFiles\/Gradle\/build.gradle.\s+Found\s+file\s+which\s+requires\s+that\s+all\s+files\s+needs\s+to\s+be\s+uploaded.\s+Please\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file./', $output);
+        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartExample\/build\.gradle', $output, true);
+        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartLib\/build\.gradle', $output, true);
+        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/build\.gradle', $output, true);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
 
         $files = $this->zipFileContents('test-adjacent-repository', 'test-commit');
@@ -566,8 +587,8 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('CsProj/exampleFile.csproj ', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
 
+        $err_message = 'These files were inside zip: '.json_encode($files);
         if ($uploadAll) {
-            $err_message = 'These files were inside zip: '.json_encode($files);
             $this->assertContains('README.md', $files, $err_message);
             $this->assertContains('tests/AdjacentFiles/Gradle/MPChartExample/build.gradle', $files, $err_message);
             $this->assertContains('tests/DependencyFiles/Gradle/MPChartLib/build.gradle', $files, $err_message);
@@ -577,7 +598,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             $this->assertTrue(count($files) > 50, 'Too few files in zip, found '.count($files));
         } else {
             // Check that zip does only have adjacent files, not all files.
-            $err_message = 'These files were inside zip: '.json_encode($files);
             $this->assertCount(3, $files, 'These files were in zip: '.json_encode($files));
             $this->assertNotContains('README.md', $files, $err_message);
             $this->assertNotContains('src/Command/FindAndUploadFilesCommand.php', $files, $err_message);
@@ -588,12 +608,12 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         // Check that zip filenames don't start with / or have multiple // inside them.
         foreach ($files as $file) {
-            $this->assertNotRegexp('#^/#', $file);
-            $this->assertNotRegexp('#//#', $file);
+            $this->assertDoesNotMatchRegularExpression('#^/#', $file);
+            $this->assertDoesNotMatchRegularExpression('#//#', $file);
         }
     }
 
-    public function setUpReal(): void
+    private function setUpReal(): void
     {
         $kernel = self::createKernel();
         $application = new Application($kernel);

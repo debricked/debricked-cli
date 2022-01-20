@@ -38,7 +38,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
      *
      * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
@@ -54,7 +54,6 @@ class CompoundCommand extends FindAndUploadFilesCommand
 
             return 5;
         }
-        /** @var string $findAndUploadCommandName */
         $findAndUploadCommand = $application->find($findAndUploadCommandName);
         $io->section("Executing {$findAndUploadCommand->getName()}");
         $findAndUploadOutput = new CombinedOutput(
