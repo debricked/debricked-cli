@@ -52,10 +52,7 @@ class FindAndUploadFilesCommand extends Command
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
     private const OPTION_AUTHOR = 'author';
 
-    /**
-     * @var HttpClientInterface
-     */
-    private $debrickedClient;
+    private HttpClientInterface $debrickedClient;
 
     /**
      * @var array<string, string>
@@ -82,37 +79,31 @@ class FindAndUploadFilesCommand extends Command
                 self::ARGUMENT_USERNAME,
                 InputArgument::REQUIRED,
                 'Your Debricked username. Set to an empty string if you use an access token.',
-                null
             )
             ->addArgument(
                 self::ARGUMENT_PASSWORD,
                 InputArgument::REQUIRED,
                 'Your Debricked password or access token',
-                null
             )
             ->addArgument(
                 self::ARGUMENT_REPOSITORY_NAME,
                 InputArgument::REQUIRED,
                 'Repository to associate found files with',
-                null
             )
             ->addArgument(
                 self::ARGUMENT_COMMIT_NAME,
                 InputArgument::REQUIRED,
                 'Commit to associate found files with',
-                null
             )
             ->addArgument(
                 self::ARGUMENT_REPOSITORY_URL,
                 InputArgument::REQUIRED,
                 'The repository uri, to create the link to the dependency\'s file in suggested fix.',
-                null
             )
             ->addArgument(
                 self::ARGUMENT_INTEGRATION_NAME,
                 InputArgument::REQUIRED,
                 'The integration name (azureDevOps, bitbucket or gitlab)',
-                null
             )
             ->addArgument(
                 self::ARGUMENT_BASE_DIRECTORY,
@@ -174,7 +165,7 @@ class FindAndUploadFilesCommand extends Command
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $username = \strval($input->getArgument(self::ARGUMENT_USERNAME));
@@ -275,7 +266,9 @@ class FindAndUploadFilesCommand extends Command
             $relativePathname = $this->normaliseRelativePath($baseDirectory.'/'.$file->getRelativePathname());
 
             if ($uploadAllFiles === true && \array_key_exists($extension, $this->blacklist) === false) {
-                $zip->addFile($absolutePathname, $relativePathname);
+                if (@$zip->addFile($absolutePathname, $relativePathname) === false) {
+                    $io->warning("Failed to add file {$absolutePathname} to zip");
+                }
             }
 
             // Include it in snippet analysis (SnippetAnalysis has its own file extension filter though).
@@ -290,7 +283,9 @@ class FindAndUploadFilesCommand extends Command
                         $dependencyFileNames['adjacentDependencyFileNames'], $baseDirectory);
                     if (!empty($adjacentAbsolute) && !$uploadAllFiles) {
                         // There is an adjacent file! Add it to the zip.
-                        $zip->addFile($adjacentAbsolute, $adjacentRelative);
+                        if (@$zip->addFile($adjacentAbsolute, $adjacentRelative) === false) {
+                            $io->warning("Failed to add adjacent dependency tree file {$adjacentAbsolute} to zip");
+                        }
                         $uploadedAdjacentFilePaths[] = $adjacentRelative;
                     } elseif (!$uploadAllFiles) {
                         $optionNameUploadAllFiles = self::OPTION_UPLOAD_ALL_FILES;
@@ -351,7 +346,8 @@ class FindAndUploadFilesCommand extends Command
 
         if ($shouldUploadZip === true) {
             if ($successfullyCreatedZip === false) {
-                $io->warning('Failed to create zip file');
+                $io->warning('Failed to create zip file, results may be less accurate. Make sure the command has '.
+                    'write permission for current working directory.');
             } else {
                 $io->note("Successfully created zip file with {$zipFileCount} extra file(s)");
             }
@@ -492,7 +488,7 @@ class FindAndUploadFilesCommand extends Command
      *
      * @param ?int                   $uploadId   reference to the CI upload id
      * @param array<string|DataPart> $formFields associative array of form fields to upload
-     * @param API                    $api        API instance to debricked
+     * @param API                    $api        API instance to Debricked
      * @param string                 $filename   filename used only in error messages
      */
     protected function uploadDependencyData(?int &$uploadId, array $formFields, API $api, string $filename): void
@@ -546,23 +542,7 @@ class FindAndUploadFilesCommand extends Command
         API $api, SplFileInfo $file,
         string $baseDirectory
     ): string {
-        $formFields =
-            [
-                'repositoryName' => $repository,
-                'commitName' => $commit,
-            ];
-
-        if (empty($branchName) === false) {
-            $formFields['branchName'] = $branchName;
-        }
-
-        if (empty($defaultBranchName) === false) {
-            $formFields['defaultBranchName'] = $defaultBranchName;
-        }
-
-        if ($uploadId !== null) {
-            $formFields['ciUploadId'] = \strval($uploadId);
-        }
+        $formFields = $this->getCommonFileFormFields($repository, $commit, $branchName, $defaultBranchName, $uploadId);
 
         $formFields['repositoryUrl'] = $repositoryUrl;
         $formFields['fileData'] = DataPart::fromPath($file->getPathname());
@@ -608,6 +588,23 @@ class FindAndUploadFilesCommand extends Command
             return;
         }
 
+        $formFields = $this->getCommonFileFormFields($repository, $commit, $branchName, $defaultBranchName, $uploadId);
+
+        $formFields['repositoryUrl'] = $repositoryUrl;
+        $formFields['fileData'] = new DataPart($wfpData, '.debricked-wfp-fingerprints.txt');
+        $formFields['fileRelativePath'] = $this->normaliseRelativePath($baseDirectory.'/.debricked-wfp-fingerprints.txt');
+
+        /* @noinspection PhpUnhandledExceptionInspection */
+        $this->uploadDependencyData($uploadId, $formFields, $api, 'WFP fingerprints');
+        // Will return on success, otherwise exception will bubble up.
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getCommonFileFormFields(
+        string $repository, string $commit, string $branchName, string $defaultBranchName, ?int $uploadId
+    ): array {
         $formFields =
             [
                 'repositoryName' => $repository,
@@ -626,12 +623,6 @@ class FindAndUploadFilesCommand extends Command
             $formFields['ciUploadId'] = \strval($uploadId);
         }
 
-        $formFields['repositoryUrl'] = $repositoryUrl;
-        $formFields['fileData'] = new DataPart($wfpData, '.debricked-wfp-fingerprints.txt');
-        $formFields['fileRelativePath'] = $this->normaliseRelativePath($baseDirectory.'/.debricked-wfp-fingerprints.txt');
-
-        /* @noinspection PhpUnhandledExceptionInspection */
-        $this->uploadDependencyData($uploadId, $formFields, $api, 'WFP fingerprints');
-        // Will return on success, otherwise exception will bubble up.
+        return $formFields;
     }
 }
