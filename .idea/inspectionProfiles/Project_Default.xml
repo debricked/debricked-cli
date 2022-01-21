@@ -10,5 +10,6 @@
       <option name="level" value="7" />
       <option name="config" value="$PROJECT_DIR$/phpstan.neon" />
     </inspection_tool>
+    <inspection_tool class="PhpUnnecessaryCurlyVarSyntaxInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
   </profile>
 </component>
