@@ -13,12 +13,15 @@ namespace App\Command;
 use App\Console\CombinedOutput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class CompoundCommand extends FindAndUploadFilesCommand
 {
     protected static $defaultName = 'debricked:scan';
+
+    public const OPTION_DISABLE_CONDITIONAL_SKIP_SCAN = 'disable-conditional-skip-scan';
 
     protected function configure(): void
     {
@@ -30,6 +33,12 @@ class CompoundCommand extends FindAndUploadFilesCommand
         $this
             ->setDescription(
                 "Runs $findAndUploadCommand and $checkScanCommand, resulting in a full vulnerability scan."
+            )
+            ->addOption(
+                self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
+                null,
+                InputOption::VALUE_NONE,
+                'Use this option to disable skip scan from ever triggering. Default is to allow skip scan triggering because of long queue times (=false).'
             );
     }
 
@@ -61,7 +70,18 @@ class CompoundCommand extends FindAndUploadFilesCommand
             $output->isDecorated(),
             $output->getFormatter()
         );
-        $findAndUploadReturnCode = $findAndUploadCommand->run($input, $findAndUploadOutput);
+
+        $options = $input->getOptions();
+        unset($options[self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN]);
+        $newOptions = [];
+        foreach ($options as $option => $value)
+        {
+            $newOptions['--' . $option] = $value;
+        }
+        $parameters = \array_merge($input->getArguments(), $newOptions);
+        $findAndUploadInput = new ArrayInput($parameters);
+        $findAndUploadReturnCode = $findAndUploadCommand->run($findAndUploadInput, $findAndUploadOutput);
+
         if ($findAndUploadReturnCode !== 0) {
             return 1;
         }

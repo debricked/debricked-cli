@@ -68,7 +68,7 @@ class CompoundCommandTest extends KernelTestCase
             'commit-name' => 'test-release',
             'repository-url' => 'repository-url',
             'integration-name' => 'azureDevOps',
-            '--' . FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN => null
+            '--' . CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN => null
         ]);
 
         $output = $this->commandTester->getDisplay();

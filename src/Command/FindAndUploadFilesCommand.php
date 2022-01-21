@@ -51,7 +51,6 @@ class FindAndUploadFilesCommand extends Command
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
     private const OPTION_AUTHOR = 'author';
-    public const OPTION_DISABLE_CONDITIONAL_SKIP_SCAN = 'disable-conditional-skip-scan';
 
     private HttpClientInterface $debrickedClient;
 
@@ -136,7 +135,8 @@ class FindAndUploadFilesCommand extends Command
                 self::OPTION_BRANCH_NAME,
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Branch to associate found files with'
+                'Branch to associate found files with',
+                ""
             )
             ->addOption(
                 self::OPTION_KEEP_ZIP,
@@ -163,12 +163,6 @@ class FindAndUploadFilesCommand extends Command
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Default branch for the repository'
-            )
-            ->addOption(
-                self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
-                null,
-                InputOption::VALUE_NONE,
-                'Use this option to disable skip scan from ever triggering. Default is to allow skip scan triggering because of long queue times (=false).'
             );
     }
 

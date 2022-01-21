@@ -73,7 +73,7 @@ class CheckScanCommand extends Command
                 null
             )
             ->addOption(
-                FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
+                CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
                 null,
                 InputOption::VALUE_NONE,
                 'Use this option to disable skip scan from ever triggering. Default is to allow skip scan triggering because of long queue times (=false).'
@@ -179,7 +179,7 @@ class CheckScanCommand extends Command
             'vulnerabilitiesFound' => 0,
         ];
 
-        $disableConditionalSkipScan = \boolval($input->getOption(FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN));
+        $disableConditionalSkipScan = \boolval($input->getOption(CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN));
         try {
             while (true) {
                 $statusResponse = $api->makeApiCall(
