@@ -136,7 +136,7 @@ class FindAndUploadFilesCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Branch to associate found files with',
-                ""
+                ''
             )
             ->addOption(
                 self::OPTION_KEEP_ZIP,

@@ -74,9 +74,8 @@ class CompoundCommand extends FindAndUploadFilesCommand
         $options = $input->getOptions();
         unset($options[self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN]);
         $newOptions = [];
-        foreach ($options as $option => $value)
-        {
-            $newOptions['--' . $option] = $value;
+        foreach ($options as $option => $value) {
+            $newOptions['--'.$option] = $value;
         }
         $parameters = \array_merge($input->getArguments(), $newOptions);
         $findAndUploadInput = new ArrayInput($parameters);
