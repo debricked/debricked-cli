@@ -61,11 +61,7 @@ class CompoundCommandTest extends KernelTestCase
     public function testDisableConditionalSkipScan()
     {
         //test when disable-conditional-skip-scan is null (this is the same as true). Scan should always complete
-        $responseQueueTimeTooLong = new MockResponse('The queue time was too long', ['http_code' => Response::HTTP_CREATED]);
-        $httpClient = new MockHttpClient([$responseQueueTimeTooLong], 'https://debricked.com');
-        $command = new CompoundCommand($httpClient, 'name');
-        $commandTester = new CommandTester($command);
-        $commandTester->execute([
+        $this->commandTester->execute([
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             'repository-name' => 'test-product',
@@ -75,8 +71,8 @@ class CompoundCommandTest extends KernelTestCase
             '--' . FindAndUploadFilesCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN => null
         ]);
 
-        $output = $commandTester->getDisplay();
-        $this->assertEquals(0, $commandTester->getStatusCode(), $output);
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertContains('Scan completed', $output);
     }
 }
