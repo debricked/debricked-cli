@@ -345,14 +345,16 @@ class FindAndUploadFilesCommand extends Command
         $io->newLine(2);
 
         $zipFileCount = $zip->count();
-        $successfullyCreatedZip = $zip->close();
+        $successfullyCreatedZip = @$zip->close();
 
         $shouldUploadZip = $uploadAllFiles === true || empty($uploadedAdjacentFilePaths) === false;
 
-        if ($successfullyCreatedZip === false && $shouldUploadZip === true) {
-            $io->warning('Failed to create zip file');
-        } elseif ($shouldUploadZip === true) {
-            $io->note("Successfully created zip file with {$zipFileCount} extra file(s)");
+        if ($shouldUploadZip === true) {
+            if ($successfullyCreatedZip === false) {
+                $io->warning('Failed to create zip file');
+            } else {
+                $io->note("Successfully created zip file with {$zipFileCount} extra file(s)");
+            }
         }
 
         if ($uploadId !== null) {
