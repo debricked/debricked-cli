@@ -76,7 +76,7 @@ class CheckScanCommand extends Command
                 CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
                 null,
                 InputOption::VALUE_NONE,
-                'Use this option to disable skip scan from ever triggering. Default is to allow skip scan triggering because of long queue times (=false).'
+                'Use this option to disable skip scan from ever triggering.'
             );
     }
 

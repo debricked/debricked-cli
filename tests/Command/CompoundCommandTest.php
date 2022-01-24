@@ -2,17 +2,12 @@
 
 namespace App\Tests\Command;
 
-use App\Command\CheckScanCommand;
 use App\Command\CompoundCommand;
 use App\Command\FindAndUploadFilesCommand;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\HttpClient\MockHttpClient;
-use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Tests @see CompoundCommand.
@@ -68,7 +63,7 @@ class CompoundCommandTest extends KernelTestCase
             'commit-name' => 'test-release',
             'repository-url' => 'repository-url',
             'integration-name' => 'azureDevOps',
-            '--' . CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN => null
+            CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN_WITH_DASHES => null,
         ]);
 
         $output = $this->commandTester->getDisplay();

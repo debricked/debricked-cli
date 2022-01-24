@@ -352,12 +352,11 @@ class CheckScanCommandTest extends KernelTestCase
         $commandArguments = [
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
-            CheckScanCommand::ARGUMENT_UPLOAD_ID => '0'
+            CheckScanCommand::ARGUMENT_UPLOAD_ID => '0',
         ];
 
-        if (!$optionOmitted)
-        {
-            $commandArguments['--' . CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN] = $disableConditionalSkipScan;
+        if (!$optionOmitted) {
+            $commandArguments[CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN_WITH_DASHES] = $disableConditionalSkipScan;
         }
 
         $commandTester->execute($commandArguments);
@@ -365,12 +364,10 @@ class CheckScanCommandTest extends KernelTestCase
         $output = $commandTester->getDisplay();
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
 
-        if ($disableConditionalSkipScan === true || $disableConditionalSkipScan === null)
-        {
+        if ($disableConditionalSkipScan === true || $disableConditionalSkipScan === null) {
             $this->assertNotContains('The queue time was too long', $output);
             $this->assertContains('Scan completed', $output);
-        } else
-        {
+        } else {
             $this->assertContains('The queue time was too long', $output);
             $this->assertNotContains('Scan completed', $output);
         }
