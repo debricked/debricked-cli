@@ -366,9 +366,11 @@ class CheckScanCommandTest extends KernelTestCase
 
         if ($disableConditionalSkipScan === true || $disableConditionalSkipScan === null) {
             $this->assertStringNotContainsString('The queue time was too long', $output);
+            $this->assertStringContainsString(CheckScanCommand::MESSAGE_LONG_SCAN_QUEUES, $output);
             $this->assertStringContainsString('Scan completed', $output);
         } else {
             $this->assertStringContainsString('The queue time was too long', $output);
+            $this->assertStringNotContainsString(CheckScanCommand::MESSAGE_LONG_SCAN_QUEUES, $output);
             $this->assertStringNotContainsString('Scan completed', $output);
         }
     }

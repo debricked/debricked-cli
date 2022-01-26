@@ -33,6 +33,8 @@ class CheckScanCommand extends Command
 
     public const ARGUMENT_UPLOAD_ID = 'upload-id';
 
+    public const MESSAGE_LONG_SCAN_QUEUES = "\n\n Scan queues are currently long, but you have disabled conditional skip scan. Will wait indefinitely until scan is complete.\n";
+
     /**
      * @var HttpClientInterface
      */
@@ -195,6 +197,8 @@ class CheckScanCommand extends Command
                 $statusCode = $statusResponse->getStatusCode();
                 if ($disableConditionalSkipScan === false && $statusCode === Response::HTTP_CREATED) {
                     break;
+                } elseif ($statusCode === Response::HTTP_CREATED) {
+                    $io->text(self::MESSAGE_LONG_SCAN_QUEUES);
                 }
 
                 $status = \json_decode($statusResponse->getContent(), true);
