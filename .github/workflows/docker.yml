@@ -53,5 +53,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          target: cli
           labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ steps.meta.outputs.tags }}
