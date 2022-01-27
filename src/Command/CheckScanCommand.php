@@ -195,10 +195,12 @@ class CheckScanCommand extends Command
                 );
 
                 $statusCode = $statusResponse->getStatusCode();
-                if ($disableConditionalSkipScan === false && $statusCode === Response::HTTP_CREATED) {
-                    break;
-                } elseif ($statusCode === Response::HTTP_CREATED) {
-                    $io->text(self::MESSAGE_LONG_SCAN_QUEUES);
+                if ($statusCode === Response::HTTP_CREATED) {
+                    if ($disableConditionalSkipScan === false) {
+                        break;
+                    } else {
+                        $io->text(self::MESSAGE_LONG_SCAN_QUEUES);
+                    }
                 }
 
                 $status = \json_decode($statusResponse->getContent(), true);

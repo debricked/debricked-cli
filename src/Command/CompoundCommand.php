@@ -136,7 +136,9 @@ class CompoundCommand extends FindAndUploadFilesCommand
             $output->getFormatter()
         );
 
+        //This will return all given options merged with default values for ungiven options
         $options = $input->getOptions();
+        //Unset option because it does not exist in FindAndUploadFilesCommand
         unset($options[self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN]);
         $newOptions = [];
         foreach ($options as $option => $value) {
