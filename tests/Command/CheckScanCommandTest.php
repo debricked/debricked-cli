@@ -3,6 +3,7 @@
 namespace App\Tests\Command;
 
 use App\Command\CheckScanCommand;
+use App\Command\CompoundCommand;
 use App\Command\FindAndUploadFilesCommand;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -308,22 +309,70 @@ class CheckScanCommandTest extends KernelTestCase
         $this->assertGreaterThan($rule2Begin, $rule3Begin);
     }
 
-    public function testQueueTimeTooLong()
+    public function testQueueTimeTooLongConditionalSkipScanEnabled()
     {
         $response = new MockResponse('The queue time was too long', ['http_code' => Response::HTTP_CREATED]);
-        $httpClient = new MockHttpClient([$response], 'https://debricked.com');
-        $command = new CheckScanCommand($httpClient, 'name');
 
+        //test when option is omitted
+        $httpClient = new MockHttpClient([$response], 'https://debricked.com');
+        $this->assertQueueTimeTooLongConditionalSkipScan($httpClient, true, false);
+
+        //test when option is set to false
+        $httpClient = new MockHttpClient([$response], 'https://debricked.com');
+        $this->assertQueueTimeTooLongConditionalSkipScan($httpClient, false, false);
+    }
+
+    public function testQueueTimeTooLongConditionalSkipScanDisabled()
+    {
+        $responseQueueTimeTooLong = new MockResponse('The queue time was too long', ['http_code' => Response::HTTP_CREATED]);
+        $responseScanFinished = new MockResponse(
+            \json_encode([
+                'progress' => 100,
+                'vulnerabilitiesFound' => 0,
+                'unaffectedVulnerabilitiesFound' => 0,
+                'detailsUrl' => '',
+            ]),
+            ['http_code' => Response::HTTP_OK]
+        );
+
+        //test when option is null (same as true but no value given to it)
+        $httpClient = new MockHttpClient([$responseQueueTimeTooLong, $responseScanFinished], 'https://debricked.com');
+        $this->assertQueueTimeTooLongConditionalSkipScan($httpClient, false, null);
+
+        //test when option is true
+        $httpClient = new MockHttpClient([$responseQueueTimeTooLong, $responseScanFinished], 'https://debricked.com');
+        $this->assertQueueTimeTooLongConditionalSkipScan($httpClient, false, true);
+    }
+
+    private function assertQueueTimeTooLongConditionalSkipScan(MockHttpClient $httpClient, bool $optionOmitted, ?bool $disableConditionalSkipScan)
+    {
+        $command = new CheckScanCommand($httpClient, 'name');
         $commandTester = new CommandTester($command);
-        $commandTester->execute([
+
+        $commandArguments = [
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
             CheckScanCommand::ARGUMENT_UPLOAD_ID => '0',
-        ]);
+        ];
+
+        if (!$optionOmitted) {
+            $commandArguments[CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN_WITH_DASHES] = $disableConditionalSkipScan;
+        }
+
+        $commandTester->execute($commandArguments);
 
         $output = $commandTester->getDisplay();
         $this->assertEquals(0, $commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('The queue time was too long', $output);
+
+        if ($disableConditionalSkipScan === true || $disableConditionalSkipScan === null) {
+            $this->assertStringNotContainsString('The queue time was too long', $output);
+            $this->assertStringContainsString(CheckScanCommand::MESSAGE_LONG_SCAN_QUEUES, $output);
+            $this->assertStringContainsString('Scan completed', $output);
+        } else {
+            $this->assertStringContainsString('The queue time was too long', $output);
+            $this->assertStringNotContainsString(CheckScanCommand::MESSAGE_LONG_SCAN_QUEUES, $output);
+            $this->assertStringNotContainsString('Scan completed', $output);
+        }
     }
 
     public function testVulnerabilitiesFound()

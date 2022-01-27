@@ -31,14 +31,15 @@ class SnippetAnalysisTest extends KernelTestCase
         $analyser = new SnippetAnalysis();
         $analyser->analyseFile('tests/Analysis/TestFiles/TestSourceCombinedOutput.php', 'TestFiles/TestSourceCombinedOutput.php');
 
-        $this->assertEquals("file=bf2122ce997bca8e0a3d5d3337f09df3,1048,TestFiles/TestSourceCombinedOutput.php
+        $this->assertEquals("file=b38805b9e7cddd1da4a3f7a7290b0c6a,1075,TestFiles/TestSourceCombinedOutput.php
 8=514cd405,b60d2d79,ee688409
-11=d7d1f600,849077e4
-13=3875cc7a
-14=8812be30,b0d48124
+11=d7d1f600,fffc9255
+13=17378c05
+14=b0d48124
 17=7c7f1dd2,99768710
-19=8ffe4737,c83b3e94
-27=a6057151,d4117a3d
+19=d106e16a
+24=de48239e,82b50939
+27=d4117a3d
 33=6df123bf
 34=1bc148e9
 42=0887f549
@@ -53,14 +54,15 @@ class SnippetAnalysisTest extends KernelTestCase
         $analyser->analyseFile('tests/Analysis/TestFiles/TestSourceCombinedOutput.php', 'TestFiles/TestSourceCombinedOutput.php');
         $analyser->analyseFile('tests/Analysis/TestFiles/TestSourceKernel.php', 'TestFiles/TestSourceKernel.php');
 
-        $this->assertEquals("file=bf2122ce997bca8e0a3d5d3337f09df3,1048,TestFiles/TestSourceCombinedOutput.php
+        $this->assertEquals("file=b38805b9e7cddd1da4a3f7a7290b0c6a,1075,TestFiles/TestSourceCombinedOutput.php
 8=514cd405,b60d2d79,ee688409
-11=d7d1f600,849077e4
-13=3875cc7a
-14=8812be30,b0d48124
+11=d7d1f600,fffc9255
+13=17378c05
+14=b0d48124
 17=7c7f1dd2,99768710
-19=8ffe4737,c83b3e94
-27=a6057151,d4117a3d
+19=d106e16a
+24=de48239e,82b50939
+27=d4117a3d
 33=6df123bf
 34=1bc148e9
 42=0887f549

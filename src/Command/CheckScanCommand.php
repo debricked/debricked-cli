@@ -14,6 +14,7 @@ use Debricked\Shared\API\API;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +32,8 @@ class CheckScanCommand extends Command
     protected static $defaultName = 'debricked:check-scan';
 
     public const ARGUMENT_UPLOAD_ID = 'upload-id';
+
+    public const MESSAGE_LONG_SCAN_QUEUES = "\n\n Scan queues are currently long, but you have disabled conditional skip scan. Will wait indefinitely until scan is complete.\n";
 
     /**
      * @var HttpClientInterface
@@ -70,6 +73,12 @@ class CheckScanCommand extends Command
                 InputArgument::REQUIRED,
                 "Upload id you got from running $findAndUploadCommand",
                 null
+            )
+            ->addOption(
+                CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
+                null,
+                InputOption::VALUE_NONE,
+                'Use this option to disable skip scan from ever triggering.'
             );
     }
 
@@ -172,6 +181,7 @@ class CheckScanCommand extends Command
             'vulnerabilitiesFound' => 0,
         ];
 
+        $disableConditionalSkipScan = \boolval($input->getOption(CompoundCommand::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN));
         try {
             while (true) {
                 $statusResponse = $api->makeApiCall(
@@ -186,18 +196,26 @@ class CheckScanCommand extends Command
 
                 $statusCode = $statusResponse->getStatusCode();
                 if ($statusCode === Response::HTTP_CREATED) {
-                    break;
+                    if ($disableConditionalSkipScan === false) {
+                        break;
+                    } else {
+                        $io->text(self::MESSAGE_LONG_SCAN_QUEUES);
+                    }
                 }
 
                 $status = \json_decode($statusResponse->getContent(), true);
-                if (\intval($status['progress']) !== -1) {
+                if (isset($status['progress']) && \intval($status['progress']) !== -1) {
                     $progressBar->setMessage("{$status['vulnerabilitiesFound']} vulnerabilities found ({$status['unaffectedVulnerabilitiesFound']} have been marked as unaffected)");
                 }
+
                 if ($statusCode === Response::HTTP_OK) {
                     break;
                 }
 
-                $progressBar->setProgress($status['progress']);
+                if (isset($status['progress'])) {
+                    $progressBar->setProgress($status['progress']);
+                }
+
                 sleep(1);
             }
         } catch (TransportExceptionInterface $e) {
@@ -214,7 +232,7 @@ class CheckScanCommand extends Command
 
         $io->newLine(2);
 
-        if ($statusCode === Response::HTTP_CREATED) {
+        if ($disableConditionalSkipScan === false && $statusCode === Response::HTTP_CREATED) {
             $urlMessage = $statusResponse->getContent();
             $io->text($urlMessage);
 

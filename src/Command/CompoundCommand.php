@@ -11,14 +11,19 @@
 namespace App\Command;
 
 use App\Console\CombinedOutput;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class CompoundCommand extends FindAndUploadFilesCommand
 {
     protected static $defaultName = 'debricked:scan';
+
+    public const OPTION_DISABLE_CONDITIONAL_SKIP_SCAN = 'disable-conditional-skip-scan';
+    public const OPTION_DISABLE_CONDITIONAL_SKIP_SCAN_WITH_DASHES = '--'.self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN;
 
     protected function configure(): void
     {
@@ -30,6 +35,12 @@ class CompoundCommand extends FindAndUploadFilesCommand
         $this
             ->setDescription(
                 "Runs $findAndUploadCommand and $checkScanCommand, resulting in a full vulnerability scan."
+            )
+            ->addOption(
+                self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN,
+                null,
+                InputOption::VALUE_NONE,
+                'Use this option to disable skip scan from ever triggering. Default is to allow skip scan triggering because of long queue times (=false).'
             );
     }
 
@@ -42,6 +53,12 @@ class CompoundCommand extends FindAndUploadFilesCommand
     {
         $io = new SymfonyStyle($input, $output);
 
+        if (($application = $this->getApplication()) === null) {
+            $io->error('Could not get application instance');
+
+            return 5;
+        }
+
         $findAndUploadCommandName = FindAndUploadFilesCommand::getDefaultName();
         if ($findAndUploadCommandName === null) {
             $io->error('Could not find name of find and upload files command');
@@ -49,19 +66,15 @@ class CompoundCommand extends FindAndUploadFilesCommand
             return 3;
         }
 
-        if (($application = $this->getApplication()) === null) {
-            $io->error('Could not get application instance');
+        $io->section("Executing $findAndUploadCommandName");
+        [$findAndUploadReturnCode, $findAndUploadOutput] = $this->runFindAndUploadCommand($application, $input, $output, $findAndUploadCommandName);
 
-            return 5;
+        if ($findAndUploadReturnCode === 3) {
+            $io->error('Could not find name of find and upload files command');
+
+            return 3;
         }
-        $findAndUploadCommand = $application->find($findAndUploadCommandName);
-        $io->section("Executing {$findAndUploadCommand->getName()}");
-        $findAndUploadOutput = new CombinedOutput(
-            $output->getVerbosity(),
-            $output->isDecorated(),
-            $output->getFormatter()
-        );
-        $findAndUploadReturnCode = $findAndUploadCommand->run($input, $findAndUploadOutput);
+
         if ($findAndUploadReturnCode !== 0) {
             return 1;
         }
@@ -95,6 +108,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
                     FindAndUploadFilesCommand::ARGUMENT_PASSWORD
                 ),
                 CheckScanCommand::ARGUMENT_UPLOAD_ID => $uploadId,
+                self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN_WITH_DASHES => $input->getOption(self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN),
             ];
         $checkScanInput = new ArrayInput($checkScanArguments);
         $checkScanReturnCode = $checkScanCommand->run($checkScanInput, $output);
@@ -103,5 +117,37 @@ class CompoundCommand extends FindAndUploadFilesCommand
         }
 
         return 0;
+    }
+
+    /**
+     * @return array{int, CombinedOutput}
+     */
+    private function runFindAndUploadCommand(
+        Application $application,
+        InputInterface $input,
+        OutputInterface $output,
+        string $findAndUploadCommandName
+    ): array {
+        $findAndUploadCommand = $application->find($findAndUploadCommandName);
+
+        $findAndUploadOutput = new CombinedOutput(
+            $output->getVerbosity(),
+            $output->isDecorated(),
+            $output->getFormatter()
+        );
+
+        //This will return all given options merged with default values for ungiven options
+        $options = $input->getOptions();
+        //Unset option because it does not exist in FindAndUploadFilesCommand
+        unset($options[self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN]);
+        $newOptions = [];
+        foreach ($options as $option => $value) {
+            $newOptions['--'.$option] = $value;
+        }
+        $parameters = \array_merge($input->getArguments(), $newOptions);
+        $findAndUploadInput = new ArrayInput($parameters);
+        $returnCode = $findAndUploadCommand->run($findAndUploadInput, $findAndUploadOutput);
+
+        return [$returnCode, $findAndUploadOutput];
     }
 }
