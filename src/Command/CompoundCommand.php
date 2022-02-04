@@ -66,7 +66,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
             return 3;
         }
 
-        $io->section("Executing $findAndUploadCommandName");
+        $io->writeln("Executing $findAndUploadCommandName", OutputInterface::VERBOSITY_VERBOSE);
         [$findAndUploadReturnCode, $findAndUploadOutput] = $this->runFindAndUploadCommand($application, $input, $output, $findAndUploadCommandName);
 
         if ($findAndUploadReturnCode === 3) {
@@ -98,7 +98,7 @@ class CompoundCommand extends FindAndUploadFilesCommand
         $uploadId = $uploadIdMatches[1];
 
         $io->newLine(2);
-        $io->section("Executing {$checkScanCommand->getName()} with $uploadId");
+        $io->writeln("Executing {$checkScanCommand->getName()} with $uploadId", OutputInterface::VERBOSITY_VERBOSE);
         $checkScanArguments =
             [
                 FindAndUploadFilesCommand::ARGUMENT_USERNAME => $input->getArgument(
