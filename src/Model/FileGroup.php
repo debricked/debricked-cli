@@ -86,7 +86,7 @@ class FileGroup
                 }
                 $io->newLine();
                 if ($hasDebrickedFile) {
-                    $io->text('For more info: <fg=blue;options=bold>https://debricked.com/docs/language-support/java-kotlin.html#source-codeless-scans</>');
+                    $io->text('For more info: <fg=blue;options=bold>https://debricked.com/docs/language-support</>');
                 }
             }
         }
