@@ -317,7 +317,7 @@ class FindAndUploadFilesCommand extends Command
         $io->newLine(2);
 
         // Print FileGroups
-        $io->title('Files');
+        $io->section('Uploaded files');
         foreach ($fileGroups as $fileGroup) {
             $fileGroup->ioPrint($io, $searchDirectory);
         }
@@ -374,13 +374,11 @@ class FindAndUploadFilesCommand extends Command
                         'write permission for current working directory.');
                 } else {
                     $io->text('<fg=green;>[OK] Successfully uploaded zip file containing source code!</>');
-                    $io->newLine();
                 }
             }
 
             // Upload WFP fingerprints as a dependency file, if they exist.
             if ($enableSnippetAnalysis === true) {
-                $io->title('Snippet analysis');
                 try {
                     $this->uploadWfpFingerprints(
                         $uploadId,
@@ -442,7 +440,6 @@ class FindAndUploadFilesCommand extends Command
             }
 
             $checkScanCommand = CheckScanCommand::getDefaultName();
-            $io->newLine();
             $io->text(
                 "You can now execute <fg=green;options=bold>bin/console $checkScanCommand your-username your-password $uploadId</> to track the vulnerability scan"
             );

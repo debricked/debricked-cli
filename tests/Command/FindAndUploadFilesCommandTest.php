@@ -255,7 +255,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString("Files\n=====\n", $output);
+        $this->assertStringContainsString("Uploaded files\n--------------\n", $output);
         $this->assertStringContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringContainsString('MPChartExample/build.gradle', $output);
         $this->assertStringContainsString('MPChartLib/build.gradle', $output);

@@ -63,34 +63,26 @@ class FileGroup
     {
         $pathName = $this->dependencyFile->getPathname();
         $pathName = \str_replace($searchDirectory, '', $pathName);
-        $io->section($pathName);
+        $io->writeln("<options=bold;>$pathName</>");
 
         if ($this->isComplete()) {
             foreach ($this->lockFiles as $lockFile) {
                 $lockFileName = \str_replace($searchDirectory, '', $lockFile->getPathname());
-                $io->text("* <fg=green;options=bold>$lockFileName</>");
+                $io->write(" * <fg=green;>$lockFileName</>");
             }
         } else {
-            $io->text('<fg=yellow;options=bold>Missing related dependency file(s)!</>');
+            $io->text('* <fg=yellow;options=bold>Missing related dependency file(s)!</>');
             if (!$this->isLockFileGroup) {
                 $io->warning('This will result in slow scans and less precise results!');
                 $io->text('Make sure to generate at least one of the following prior to scanning:');
-                $hasDebrickedFile = false;
                 foreach ($this->dependencyFileFormat->getLockFileRegexes() as $lockFileRegex) {
-                    $io->newLine();
                     $lockFileName = stripslashes($lockFileRegex);
                     $io->text("\t* <fg=green;options=bold>$lockFileName</>");
-                    if (\preg_match('/\.debricked/', $lockFileRegex) !== false) {
-                        $hasDebrickedFile = true;
-                    }
-                }
-                $io->newLine();
-                if ($hasDebrickedFile) {
-                    $io->text('For more info: <fg=blue;options=bold>https://debricked.com/docs/language-support</>');
+                    $io->writeln(' For more info: <fg=blue;options=bold>https://debricked.com/docs/language-support</>');
                 }
             }
         }
-        $io->newLine(3);
+        $io->newLine(2);
     }
 
     /**
