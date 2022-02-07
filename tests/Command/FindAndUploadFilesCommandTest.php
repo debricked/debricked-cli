@@ -163,24 +163,30 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
-    private function assertMatchesSkippingRegexWithFileName(string $fileNameRegex, string $output, bool $not = false): void
+    public function testMissingLockFile(): void
     {
-        $regex = 'Skipping\s+'.
-            $fileNameRegex.
-            '\.\s+Found\s+file\s+which\s+requires\s+dependency\s+tree\s+\(recommended\)\s+or\s+that\s+all\s+files\s+needs\s+to\s+be uploaded\.\s+Please\s+generate\s+the\s+dependency\s+tree\s+before\s+running\s+this\s+command\s+\(recommended,\s+<[^>]+>see\s+how\s+in\s+our\s+documentation\s+here<\/>\)\s+or\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file\.';
-        $regex = "/$regex/";
+        $this->setUpMocks();
 
-        if ($not === false) {
-            $this->assertMatchesRegularExpression(
-                $regex,
-                $output
-            );
-        } else {
-            $this->assertDoesNotMatchRegularExpression(
-                $regex,
-                $output
-            );
-        }
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test--repository',
+            'commit-name' => 'test--commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'GitLab',
+            'base-directory' => '/tests/DependencyFiles/Gradle/MPChartLib/',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString('build.gradle', $output);
+        $this->assertStringContainsString('Missing related dependency file(s)!', $output);
+        $this->assertStringContainsString('[WARNING] This will result in slow scans and less precise results!', $output);
+        $this->assertStringContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
+        $this->assertStringContainsString('* .debricked-gradle-dependencies.txt', $output);
+        $this->assertStringContainsString('For more info: https://', $output);
+        $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
     }
 
     public function testUploadAllFiles()
