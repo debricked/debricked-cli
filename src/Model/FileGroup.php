@@ -52,7 +52,6 @@ class FileGroup
 
     /**
      * Returns `true` if the dependency file has a lock file. Otherwise `false`.
-     * If the FileGroup is a lockFileGroup then `true` is always returned.
      */
     public function isComplete(): bool
     {
