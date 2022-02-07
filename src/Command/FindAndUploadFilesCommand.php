@@ -337,7 +337,7 @@ class FindAndUploadFilesCommand extends Command
             $zip = null;
             $progressBar = null;
             if ($uploadAllFiles === true) {
-                $io->section('Uploading source code to Debricked');
+                $io->title('Uploading source code to Debricked');
                 $zippedRepositoryName = \str_replace('/', '-', "{$repository}_{$commit}.zip");
                 $zip = new \ZipArchive();
                 $zip->open($zippedRepositoryName, \ZipArchive::CREATE);
@@ -367,20 +367,20 @@ class FindAndUploadFilesCommand extends Command
             }
             if ($uploadAllFiles === true) {
                 $progressBar->finish();
-                $io->newLine();
-                $io->newLine();
+                $io->newLine(2);
                 $successfullyCreatedZip = @$zip->close();
                 if ($successfullyCreatedZip === false) {
                     $io->warning('Failed to create zip file, results may be less accurate. Make sure the command has '.
                         'write permission for current working directory.');
                 } else {
-                    $io->info('Successfully uploaded zip file containing source code');
+                    $io->text('<fg=green;>[OK] Successfully uploaded zip file containing source code!</>');
+                    $io->newLine();
                 }
             }
 
             // Upload WFP fingerprints as a dependency file, if they exist.
             if ($enableSnippetAnalysis === true) {
-                $io->section('Snippet analysis');
+                $io->title('Snippet analysis');
                 try {
                     $this->uploadWfpFingerprints(
                         $uploadId,
@@ -395,7 +395,8 @@ class FindAndUploadFilesCommand extends Command
                 } catch (\Exception $e) {
                     $io->warning($e->getMessage());
                 }
-                $io->info('Snippet analysis complete');
+                $io->text('<fg=green;>[OK] Snippet analysis complete!</>');
+                $io->newLine();
             }
         }
 
@@ -441,6 +442,7 @@ class FindAndUploadFilesCommand extends Command
             }
 
             $checkScanCommand = CheckScanCommand::getDefaultName();
+            $io->newLine();
             $io->text(
                 "You can now execute <fg=green;options=bold>bin/console $checkScanCommand your-username your-password $uploadId</> to track the vulnerability scan"
             );
