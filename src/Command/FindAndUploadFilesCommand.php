@@ -50,7 +50,7 @@ class FindAndUploadFilesCommand extends Command
     private const OPTION_BRANCH_NAME = 'branch-name';
     private const OPTION_DEFAULT_BRANCH = 'default-branch';
     private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
-    private const OPTION_DISABLE_SNIPPETS = 'disable-snippets';
+    private const OPTION_SNIPPET_ANALYSIS = 'snippet-analysis';
     private const OPTION_KEEP_ZIP = 'keep-zip';
     private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
@@ -130,10 +130,10 @@ class FindAndUploadFilesCommand extends Command
                 'vendor,node_modules,tests'
             )
             ->addOption(
-                self::OPTION_DISABLE_SNIPPETS,
+                self::OPTION_SNIPPET_ANALYSIS,
                 null,
                 InputOption::VALUE_NONE,
-                'Use this option to disable the snippet analysis. Default is to do snippet analysis.'
+                'Use this option to enable snippet analysis.'
             )
             ->addOption(
                 self::OPTION_BRANCH_NAME,
@@ -325,7 +325,7 @@ class FindAndUploadFilesCommand extends Command
         // If Snippet analysis or source code zipping is enabled traverse all files again
         $successfullyCreatedZip = false;
         $zippedRepositoryName = null;
-        $enableSnippetAnalysis = !\boolval($input->getOption(self::OPTION_DISABLE_SNIPPETS));
+        $enableSnippetAnalysis = \boolval($input->getOption(self::OPTION_SNIPPET_ANALYSIS));
         $snippetAnalysis = $enableSnippetAnalysis ? new SnippetAnalysis() : null;
         $uploadAllFiles = $this->parseBooleanOption($input->getOption(self::OPTION_UPLOAD_ALL_FILES));
         if ($uploadAllFiles === null) {

@@ -128,7 +128,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'integration-name' => 'azureDevOps',
             '--branch-name' => 'test-branch',
             'base-directory' => '/vendor/',
-            '--disable-snippets' => null,
             '--recursive-file-search' => 0,
         ]);
 
@@ -296,7 +295,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertFalse(\file_exists('ziprepo_dontkeep.zip'));
     }
 
-    public function testDoesUploadWfpFingerprints()
+    public function testSnippetAnalysis()
     {
         $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
@@ -309,6 +308,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'repository-url' => 'repository-url',
             'integration-name' => 'cli',
             'base-directory' => '/tests/Analysis/TestFiles/',
+            '--snippet-analysis' => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -317,7 +317,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('Snippet analysis complete', $output);
     }
 
-    public function testDoesUploadWfpFingerprintsWithUploadAllFiles()
+    public function testSnippetAnalysisWithUploadAllFiles()
     {
         $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
@@ -332,6 +332,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'base-directory' => '/tests/Analysis/TestFiles/',
             '--upload-all-files' => true,
             '--keep-zip' => null,
+            '--snippet-analysis' => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -344,7 +345,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertContains('tests/Analysis/TestFiles/TestSourceKernel.php', $files);
     }
 
-    public function testDoesntUploadWfpFingerprints()
+    public function testSnippetAnalysisDisabled()
     {
         $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded would have been the fingerprints.
@@ -358,7 +359,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'repository-url' => 'repository-url',
             'integration-name' => 'cli',
             'base-directory' => '/tests/Analysis/TestFiles/',
-            '--disable-snippets' => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
