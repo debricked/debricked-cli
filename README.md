@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/debricked/debricked-cli/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/debricked/debricked-cli/actions/workflows/test.yml)
 [![Latest Stable Version](https://poser.pugx.org/debricked/cli/v/stable)](https://packagist.org/packages/debricked/cli)
 
-![Debricked CLI in action](debricked-cli.png)
+![Debricked CLI in action](debricked-spaceship.svg)
 
 Command Line Tool (CLI) for interacting with [Debricked](https://debricked.com). Supports uploading and checking your dependency files for vulnerabilities.
 
