@@ -253,7 +253,7 @@ class FindAndUploadFilesCommand extends Command
         $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats);
 
         // Find lock files
-        $lockFileRegexes = \array_merge(...\array_map(fn ($format) => $format->getLockFileRegexes(), $dependencyFileFormats));
+        $lockFileRegexes = \array_merge(...\array_map(fn ($format) => $format->getLockFileRegexes(true), $dependencyFileFormats));
         $lockFileFinder = clone $finder;
         $lockFileFinder->name($lockFileRegexes);
         $lockFiles = [];

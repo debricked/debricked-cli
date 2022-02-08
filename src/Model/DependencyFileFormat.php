@@ -57,9 +57,9 @@ class DependencyFileFormat
     /**
      * @return string[]
      */
-    public function getLockFileRegexes(): array
+    public function getLockFileRegexes(bool $quote = false): array
     {
-        return $this->lockFiles;
+        return \array_map(fn ($lockFileRegex) => $quote ? "/$lockFileRegex/" : $lockFileRegex, $this->lockFiles);
     }
 
     /**

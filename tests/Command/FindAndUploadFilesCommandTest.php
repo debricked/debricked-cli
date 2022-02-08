@@ -189,6 +189,33 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
     }
 
+    public function testCompleteFileGroup(): void
+    {
+        $this->setUpMocks();
+
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test--repository',
+            'commit-name' => 'test--commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'GitLab',
+            'base-directory' => '/tests/AdjacentFiles/Gradle',
+            '--recursive-file-search' => false,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString('build.gradle', $output);
+        $this->assertStringContainsString('* .debricked-gradle-dependencies.txt', $output);
+        $this->assertStringNotContainsString('Missing related dependency file(s)!', $output);
+        $this->assertStringNotContainsString('[WARNING] This will result in slow scans and less precise results!', $output);
+        $this->assertStringNotContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
+        $this->assertStringNotContainsString('For more info: https://debricked.com/docs/language-support', $output);
+        $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
+    }
+
     public function testUploadAllFiles()
     {
         $this->setUpReal();

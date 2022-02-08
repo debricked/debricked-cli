@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Utility\Utility;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -52,6 +53,7 @@ class FileGroup
 
     /**
      * Returns `true` if the dependency file has a lock file. Otherwise `false`.
+     * If the FileGroup is a lockFileGroup then `true` is always returned.
      */
     public function isComplete(): bool
     {
@@ -62,11 +64,13 @@ class FileGroup
     {
         $pathName = $this->dependencyFile->getPathname();
         $pathName = \str_replace($searchDirectory, '', $pathName);
+        $pathName = Utility::normaliseRelativePath($pathName);
         $io->writeln("<options=bold;>$pathName</>");
 
         if ($this->isComplete()) {
             foreach ($this->lockFiles as $lockFile) {
                 $lockFileName = \str_replace($searchDirectory, '', $lockFile->getPathname());
+                $lockFileName = Utility::normaliseRelativePath($lockFileName);
                 $io->write(" * <fg=green;>$lockFileName</>");
             }
         } else {
