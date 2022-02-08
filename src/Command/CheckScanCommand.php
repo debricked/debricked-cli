@@ -167,7 +167,7 @@ class CheckScanCommand extends Command
         );
         $uploadId = strval($input->getArgument(self::ARGUMENT_UPLOAD_ID));
 
-        $io->section("Checking scan status of upload with ID $uploadId");
+        $io->title("Checking scan status of upload with ID $uploadId");
 
         $progressBar = $io->createProgressBar();
         $progressBar->setMessage('Upload is in scan queue');

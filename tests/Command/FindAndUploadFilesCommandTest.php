@@ -32,6 +32,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         for ($i = 0; $i < $zip->numFiles; ++$i) {
             $filenames[] = $zip->statIndex($i)['name'];
         }
+
         return $filenames;
     }
 
@@ -66,12 +67,12 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'repository-url' => 'repository-url',
             'integration-name' => 'azureDevOps',
             '--branch-name' => 'test-branch',
-            '--author' => 'test-author'
+            '--author' => 'test-author',
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
@@ -90,7 +91,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
@@ -110,7 +111,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
@@ -127,7 +128,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'integration-name' => 'azureDevOps',
             '--branch-name' => 'test-branch',
             'base-directory' => '/vendor/',
-            '--disable-snippets' => null,
             '--recursive-file-search' => 0,
         ]);
 
@@ -157,38 +157,36 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
         $this->assertStringContainsString('No directories will be ignored', $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
-        $this->assertStringContainsString('tests/DependencyFiles/composer.lock', $output);
-        $this->assertStringContainsString('tests/DependencyFiles/package-lock.json', $output);
-        $this->assertStringNotContainsString('Successfully created zip file', $output);
-        $this->assertStringNotContainsString('dependency tree files', $output);
-        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartExample\/build\.gradle', $output);
-        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartLib\/build\.gradle', $output);
-        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/build\.gradle', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
+        $this->assertStringContainsString('composer.lock', $output);
+        $this->assertStringContainsString('package-lock.json', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
-    private function assertMatchesSkippingRegexWithFileName(string $fileNameRegex, string $output, bool $not = false): void
+    public function testMissingLockFile(): void
     {
-        $regex = 'Skipping\s+' .
-            $fileNameRegex .
-            '\.\s+Found\s+file\s+which\s+requires\s+dependency\s+tree\s+\(recommended\)\s+or\s+that\s+all\s+files\s+needs\s+to\s+be uploaded\.\s+Please\s+generate\s+the\s+dependency\s+tree\s+before\s+running\s+this\s+command\s+\(recommended,\s+<[^>]+>see\s+how\s+in\s+our\s+documentation\s+here<\/>\)\s+or\s+enable\s+the\s+upload\-all\-files\s+option\s+if\s+you\s+want\s+to\s+scan\s+this\s+file\.';
-        $regex = "/$regex/";
+        $this->setUpMocks();
 
-        if ($not === false)
-        {
-            $this->assertMatchesRegularExpression(
-                $regex,
-                $output
-            );
-        }
-        else
-        {
-            $this->assertDoesNotMatchRegularExpression(
-                $regex,
-                $output
-            );
-        }
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test--repository',
+            'commit-name' => 'test--commit',
+            'repository-url' => 'repository/url',
+            'integration-name' => 'GitLab',
+            'base-directory' => '/tests/DependencyFiles/Gradle/MPChartLib/',
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString('build.gradle', $output);
+        $this->assertStringContainsString('Missing related dependency file(s)!', $output);
+        $this->assertStringContainsString('[WARNING] This will result in slow scans and less precise results!', $output);
+        $this->assertStringContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
+        $this->assertStringContainsString('* .debricked-gradle-dependencies.txt', $output);
+        $this->assertStringContainsString('For more info: https://debricked.com/docs/language-support', $output);
+        $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
     }
 
     public function testUploadAllFiles()
@@ -211,13 +209,11 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
-        $this->assertStringContainsString('Successfully created zip file', $output);
+        $this->assertStringContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringContainsString('Gradle/MPChartExample/build.gradle', $output);
-        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle ', $output);
-        $this->assertStringContainsString('Gradle/build.gradle ', $output);
-        $this->assertStringContainsString('CsProj/exampleFile.csproj ', $output);
-        $this->assertStringNotContainsString('dependency tree files', $output);
+        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle', $output);
+        $this->assertStringContainsString('Gradle/build.gradle', $output);
+        $this->assertStringContainsString('CsProj/exampleFile.csproj', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
 
         // Check that some files are in the zip, e.g., some source file and dependency file.
@@ -259,11 +255,11 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
-        $this->assertStringContainsString('Successfully created zip file', $output);
-        $this->assertStringContainsString('Gradle/MPChartExample/build.gradle', $output);
-        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle ', $output);
-        $this->assertStringContainsString('Gradle/build.gradle ', $output);
+        $this->assertStringContainsString("Uploaded files\n--------------\n", $output);
+        $this->assertStringContainsString('Successfully uploaded zip file containing source code', $output);
+        $this->assertStringContainsString('MPChartExample/build.gradle', $output);
+        $this->assertStringContainsString('MPChartLib/build.gradle', $output);
+        $this->assertStringContainsString('build.gradle', $output);
         $this->assertStringNotContainsString('dependency tree files', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
 
@@ -286,45 +282,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertLessThanOrEqual(14, count($files), 'Too many files in zip, found '.count($files));
     }
 
-    public function testUploadsAdjacentDependencyTreeFilesAsZip()
-    {
-        $this->setUpReal();
-        $this->commandTester->execute([
-            'command' => $this->command->getName(),
-            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
-            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
-            'repository-name' => 'test-adjacent-repository',
-            'commit-name' => 'test-commit',
-            'repository-url' => 'repository-url',
-            'integration-name' => 'azureDevOps',
-            '--branch-name' => 'test-branch',
-            'base-directory' => '/tests/AdjacentFiles/Gradle/',
-            '--recursive-file-search' => true,
-            '--excluded-directories' => '',
-            '--keep-zip' => null,
-        ]);
-
-        $output = $this->commandTester->getDisplay();
-        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('No directories will be ignored', $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
-        $this->assertStringContainsString('Gradle/MPChartExample/build.gradle ', $output);
-        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle ', $output);
-        $this->assertStringContainsString('Gradle/build.gradle ', $output);
-        $this->assertStringContainsString('Successfully created zip file with 3 extra file(s)', $output);
-        $this->assertStringContainsString('Successfully uploaded 3 dependency tree files', $output);
-        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartExample\/build\.gradle', $output, true);
-        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/MPChartLib\/build\.gradle', $output, true);
-        $this->assertMatchesSkippingRegexWithFileName('\/home\/tests\/DependencyFiles\/Gradle\/build\.gradle', $output, true);
-        $this->assertStringNotContainsString('Recursive search is disabled', $output);
-
-        $files = $this->zipFileContents('test-adjacent-repository', 'test-commit');
-        $this->assertCount(3, $files, 'These files were in zip: '.json_encode($files));
-        $this->assertContains('tests/AdjacentFiles/Gradle/.debricked-gradle-dependencies.txt', $files);
-        $this->assertContains('tests/AdjacentFiles/Gradle/MPChartExample/.debricked-gradle-dependencies.txt', $files);
-        $this->assertContains('tests/AdjacentFiles/Gradle/MPChartLib/.debricked-gradle-dependencies.txt', $files);
-    }
-
     public function testDontKeepZip()
     {
         $this->setUpReal();
@@ -344,7 +301,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertFalse(\file_exists('ziprepo_dontkeep.zip'));
     }
 
-    public function testDoesUploadWfpFingerprints()
+    public function testSnippetAnalysis()
     {
         $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
@@ -357,14 +314,16 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'repository-url' => 'repository-url',
             'integration-name' => 'cli',
             'base-directory' => '/tests/Analysis/TestFiles/',
+            '--snippet-analysis' => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
+        $this->assertStringContainsString('Snippet analysis complete', $output);
     }
 
-    public function testDoesUploadWfpFingerprintsWithUploadAllFiles()
+    public function testSnippetAnalysisWithUploadAllFiles()
     {
         $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
@@ -379,11 +338,12 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'base-directory' => '/tests/Analysis/TestFiles/',
             '--upload-all-files' => true,
             '--keep-zip' => null,
+            '--snippet-analysis' => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringContainsString('Successfully uploaded zip file containing source code', $output);
 
         $files = $this->zipFileContents('test-wfp', 'does-upload-all');
         $this->assertCount(2, $files, 'These files were in zip: '.json_encode($files));
@@ -391,11 +351,11 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertContains('tests/Analysis/TestFiles/TestSourceKernel.php', $files);
     }
 
-    public function testDoesntUploadWfpFingerprints()
+    public function testSnippetAnalysisDisabled()
     {
         $this->setUpReal();
         // TestFiles doesn't have any dependency file, so the only thing uploaded would have been the fingerprints.
-        // But that is disable, so we look for Nothing to upload.
+        // But that is disabled, so we look for Nothing to upload.
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -405,7 +365,6 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
             'repository-url' => 'repository-url',
             'integration-name' => 'cli',
             'base-directory' => '/tests/Analysis/TestFiles/',
-            '--disable-snippets' => null,
         ]);
 
         $output = $this->commandTester->getDisplay();
@@ -417,12 +376,14 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->setUpMocks();
 
+        $repositoryName = 'test-upload-all-files-false-means-false';
+        $commitName = 'test-commit';
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
-            'repository-name' => 'test-upload-all-files-false-means-false',
-            'commit-name' => 'test-commit',
+            'repository-name' => $repositoryName,
+            'commit-name' => $commitName,
             'repository-url' => 'repository/url',
             'integration-name' => 'azureDevOps',
             '--upload-all-files' => 'false',
@@ -432,8 +393,9 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $files = $this->zipFileContents('test-upload-all-files-false-means-false', 'test-commit');
-        $this->verifyZipContentsUploadAll(false, $output, $files);
+        $zipFilename = \str_replace('/', '-', "{$repositoryName}_$commitName.zip");
+        $this->assertFalse(\is_file($zipFilename), 'Source code was zipped then it should not');
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
     }
 
     public function testUploadAllFilesTrueMeansTrue()
@@ -463,12 +425,14 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     {
         $this->setUpMocks();
 
+        $repositoryName = 'test-upload-all-files-0-means-false';
+        $commitName = 'test-commit';
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
             FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
-            'repository-name' => 'test-upload-all-files-0-means-false',
-            'commit-name' => 'test-commit',
+            'repository-name' => $repositoryName,
+            'commit-name' => $commitName,
             'repository-url' => 'repository/url',
             'integration-name' => 'azureDevOps',
             '--upload-all-files' => '0',
@@ -478,8 +442,9 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $files = $this->zipFileContents('test-upload-all-files-0-means-false', 'test-commit');
-        $this->verifyZipContentsUploadAll(false, $output, $files);
+        $zipFilename = \str_replace('/', '-', "{$repositoryName}_$commitName.zip");
+        $this->assertFalse(\is_file($zipFilename), 'Source code was zipped then it should not');
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
     }
 
     public function testUploadAllFiles1MeansTrue()
@@ -545,7 +510,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
@@ -568,23 +533,21 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
 
         $output = $this->commandTester->getDisplay();
         $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
     }
 
     /** Helper function for tests that check our upload all files flag.
-     * @param bool $uploadAll If we expect all files to be uploaded
-     * @param string $output
+     * @param bool     $uploadAll If we expect all files to be uploaded
      * @param string[] $files
      */
     private function verifyZipContentsUploadAll(bool $uploadAll, string $output, array $files): void
     {
-        $this->assertStringContainsString('Successfully found and uploaded', $output);
-        $this->assertStringContainsString('Successfully created zip file', $output);
+        $this->assertStringContainsString('Successfully uploaded zip file containing source code', $output);
         $this->assertStringContainsString('Gradle/MPChartExample/build.gradle', $output);
-        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle ', $output);
-        $this->assertStringContainsString('Gradle/build.gradle ', $output);
-        $this->assertStringContainsString('CsProj/exampleFile.csproj ', $output);
+        $this->assertStringContainsString('Gradle/MPChartLib/build.gradle', $output);
+        $this->assertStringContainsString('Gradle/build.gradle', $output);
+        $this->assertStringContainsString('CsProj/exampleFile.csproj', $output);
         $this->assertStringNotContainsString('Recursive search is disabled', $output);
 
         $err_message = 'These files were inside zip: '.json_encode($files);
@@ -628,30 +591,35 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $responseMockGenerator = function ($method, $url, $options) use (&$ciUploadId, &$hasAuthed, $expectAccessToken) {
             if (!$expectAccessToken && \strpos($url, '/api/login_check') !== false) {
                 $hasAuthed = true;
+
                 return new MockResponse(\json_encode([
                     'token' => 'eyImAToken',
                 ]));
-            } else if ($expectAccessToken && \strpos($url, '/api/login_refresh') !== false) {
+            } elseif ($expectAccessToken && \strpos($url, '/api/login_refresh') !== false) {
                 $hasAuthed = true;
                 $this->assertArrayHasKey('body', $options);
                 $body = \json_decode($options['body'], true);
                 $this->assertEquals('secret_access_token', $body['refresh_token']);
+
                 return new MockResponse(\json_encode([
                     'token' => 'eyImATokenFromAccessToken',
                 ]));
-            } else if (!$hasAuthed) {
-                return new MockResponse('', ['http_code'=> 401]);
-            } else if (\strpos($url, '/api/1.0/open/uploads/dependencies/files') !== false) {
-                if ($ciUploadId === null) $ciUploadId = \rand(100, 1_000_000);
+            } elseif (!$hasAuthed) {
+                return new MockResponse('', ['http_code' => 401]);
+            } elseif (\strpos($url, '/api/1.0/open/uploads/dependencies/files') !== false) {
+                if ($ciUploadId === null) {
+                    $ciUploadId = \rand(100, 1_000_000);
+                }
+
                 return new MockResponse(\json_encode([
                     'ciUploadId' => $ciUploadId,
                     'uploadProgramsFileId' => \rand(100, 1_000_000),
                 ]));
-            } else if (\strpos($url, '/api/1.0/open/finishes/dependencies/files/uploads') !== false) {
+            } elseif (\strpos($url, '/api/1.0/open/finishes/dependencies/files/uploads') !== false) {
                 return new MockResponse('', ['http_code' => 204]);
-            } else if (\strpos($url, '/api/1.0/open/supported/dependency/files') !== false) {
+            } elseif (\strpos($url, '/api/1.0/open/files/supported-formats') !== false) {
                 return new MockResponse(<<<'EOD'
-{"dependencyFileNames":["apk\\.list","apt\\.list","((?!WORKSPACE|BUILD)).*(?:\\.bazel)","((?!WORKSPACE|BUILD)).*(?:\\.bzl)",".*_install\\.json","WORKSPACE\\.bazel","WORKSPACE\\.bzl","WORKSPACE","Podfile\\.lock","composer\\.lock","mix\\.lock","flatpak\\.list","Gemfile\\.lock","go\\.mod","Gopkg\\.lock","go\\.sum","build\\.gradle","build\\.gradle\\.kts","pom\\.xml","bower\\.json","package-lock\\.json","npm-shrinkwrap\\.json","package\\.json","yarn\\.lock",".*(?:\\.csproj)","packages\\.config","packages\\.lock\\.json","pacman\\.list","paket\\.lock","requirements.*(?:\\.txt)","Pipfile\\.lock","Pipfile","rpm\\.list","Cargo\\.lock","snap\\.list","\\.debricked-wfp-fingerprints\\.txt"],"dependencyFileNamesRequiresAllFiles":["WORKSPACE\\.bazel","WORKSPACE\\.bzl","WORKSPACE","build\\.gradle","build\\.gradle\\.kts","pom\\.xml"],"adjacentDependencyFileNames":{"build.gradle":".debricked-gradle-dependencies.txt","build.gradle.kts":".debricked-gradle-dependencies.txt","pom.xml":".debricked-maven-dependencies.tgf"}}
+[{"regex":"advenica_format\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"apk\\.list","documentationUrl":null,"lockFileRegexes":[]},{"regex":"apt\\.list","documentationUrl":null,"lockFileRegexes":[]},{"regex":"axis_packages\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"((?!WORKSPACE|BUILD)).*(?:\\.bazel)","documentationUrl":null,"lockFileRegexes":[]},{"regex":"((?!WORKSPACE|BUILD)).*(?:\\.bzl)","documentationUrl":null,"lockFileRegexes":[]},{"regex":".*_install\\.json","documentationUrl":null,"lockFileRegexes":[]},{"regex":"WORKSPACE\\.bazel","documentationUrl":null,"lockFileRegexes":[]},{"regex":"WORKSPACE\\.bzl","documentationUrl":null,"lockFileRegexes":[]},{"regex":"WORKSPACE","documentationUrl":null,"lockFileRegexes":[]},{"regex":"bitbake_installed_packages\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"\\.manifest","documentationUrl":null,"lockFileRegexes":[]},{"regex":"debian_descriptions\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"mix\\.lock","documentationUrl":null,"lockFileRegexes":[]},{"regex":"NaNaNa.batman","documentationUrl":null,"lockFileRegexes":[]},{"regex":"flatpak\\.list","documentationUrl":null,"lockFileRegexes":[]},{"regex":"go\\.sum","documentationUrl":null,"lockFileRegexes":["go\\.mod"]},{"regex":"build\\.gradle","documentationUrl":null,"lockFileRegexes":["\\.debricked-gradle-dependencies\\.txt"]},{"regex":"build\\.gradle\\.kts","documentationUrl":null,"lockFileRegexes":["\\.debricked-gradle-dependencies\\.txt"]},{"regex":"pom\\.xml","documentationUrl":null,"lockFileRegexes":["\\.debricked-maven-dependencies\\.tgf"]},{"regex":"bower\\.json","documentationUrl":null,"lockFileRegexes":[]},{"regex":"package\\.json","documentationUrl":null,"lockFileRegexes":["package-lock\\.json","yarn\\.lock"]},{"regex":"npm-shrinkwrap\\.json","documentationUrl":null,"lockFileRegexes":[]},{"regex":".*(?:\\.csproj)","documentationUrl":null,"lockFileRegexes":["packages\\.lock\\.json"]},{"regex":"packages\\.config","documentationUrl":null,"lockFileRegexes":[]},{"regex":"pacman\\.list","documentationUrl":null,"lockFileRegexes":[]},{"regex":"paket\\.lock","documentationUrl":null,"lockFileRegexes":[]},{"regex":"composer\\.json","documentationUrl":null,"lockFileRegexes":["composer\\.lock"]},{"regex":"requirements.*(?:\\.txt)","documentationUrl":null,"lockFileRegexes":[]},{"regex":"Pipfile","documentationUrl":null,"lockFileRegexes":["Pipfile\\.lock"]},{"regex":"manifest_rev_revisions\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"manifest_revisions\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"rootfs_manifest\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"rpm\\.list","documentationUrl":null,"lockFileRegexes":[]},{"regex":"snap\\.list","documentationUrl":null,"lockFileRegexes":[]},{"regex":"\\.debricked-call-graph","documentationUrl":null,"lockFileRegexes":[]},{"regex":"\\.debricked-wfp-fingerprints\\.txt","documentationUrl":null,"lockFileRegexes":[]},{"regex":"Gopkg\\.lock","documentationUrl":null,"lockFileRegexes":[]},{"regex":"Gemfile\\.lock","documentationUrl":null,"lockFileRegexes":[]},{"regex":"Cargo\\.lock","documentationUrl":null,"lockFileRegexes":[]},{"regex":"Podfile\\.lock","documentationUrl":null,"lockFileRegexes":[]}]
 EOD
                 );
             } else {
