@@ -251,13 +251,14 @@ class FindAndUploadFilesCommand extends Command
         $this->setProgressBarStyle($progressBar);
 
         $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats);
-
+        $numberOfMatchedFiles = 0;
         // Find lock files
         $lockFileRegexes = \array_merge(...\array_map(fn ($format) => $format->getLockFileRegexes(), $dependencyFileFormats));
         $lockFiles = [];
         foreach ($finder as $file) {
             if (Utility::pregMatchInArray($file->getFilename(), $lockFileRegexes)) {
                 $lockFiles[$file->getPathname()] = $file;
+                ++$numberOfMatchedFiles;
             }
         }
 
@@ -279,6 +280,7 @@ class FindAndUploadFilesCommand extends Command
                     }
                 }
                 $fileGroups[] = $fileGroup;
+                ++$numberOfMatchedFiles;
             }
         }
 
@@ -290,6 +292,7 @@ class FindAndUploadFilesCommand extends Command
         }
 
         // Upload FileGroups
+        $progressBar->setMaxSteps($numberOfMatchedFiles);
         foreach ($fileGroups as $fileGroup) {
             foreach ($fileGroup->getFiles() as $file) {
                 try {
