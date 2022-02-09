@@ -53,7 +53,6 @@ class FileGroup
 
     /**
      * Returns `true` if the dependency file has a lock file. Otherwise `false`.
-     * If the FileGroup is a lockFileGroup then `true` is always returned.
      */
     public function isComplete(): bool
     {
@@ -71,7 +70,7 @@ class FileGroup
             foreach ($this->lockFiles as $lockFile) {
                 $lockFileName = \str_replace($searchDirectory, '', $lockFile->getPathname());
                 $lockFileName = Utility::normaliseRelativePath($lockFileName);
-                $io->write(" * <fg=green;>$lockFileName</>");
+                $io->writeln(" * <fg=green;>$lockFileName</>");
             }
         } else {
             $io->text('* <fg=yellow;options=bold>Missing related dependency file(s)!</>');
@@ -81,8 +80,8 @@ class FileGroup
                 foreach ($this->dependencyFileFormat->getLockFileRegexes() as $lockFileRegex) {
                     $lockFileName = stripslashes($lockFileRegex);
                     $io->text("\t* <fg=green;options=bold>$lockFileName</>");
-                    $io->writeln(' For more info: <fg=blue;options=bold>https://debricked.com/docs/language-support</>');
                 }
+                $io->writeln(' For more info: <fg=blue;options=bold>https://debricked.com/docs/language-support</>');
             }
         }
         $io->newLine(2);

@@ -29,10 +29,14 @@ class DependencyFileFormat
     /**
      * @param array<string|int, self> $dependencyFileFormats
      */
-    public static function findFormatByFileName(array $dependencyFileFormats, string $filename): ?self
+    public static function findFormatByFileName(array $dependencyFileFormats, string $filename, bool $lockFile = false): ?self
     {
         foreach ($dependencyFileFormats as $dependencyFileFormat) {
-            $regexes = $dependencyFileFormat->getRegexes();
+            if ($lockFile) {
+                $regexes = $dependencyFileFormat->getLockFileRegexes();
+            } else {
+                $regexes = [$dependencyFileFormat->getRegex()];
+            }
             if (Utility::pregMatchInArray($filename, $regexes)) {
                 return $dependencyFileFormat;
             }
@@ -57,9 +61,9 @@ class DependencyFileFormat
     /**
      * @return string[]
      */
-    public function getLockFileRegexes(bool $quote = false): array
+    public function getLockFileRegexes(): array
     {
-        return \array_map(fn ($lockFileRegex) => $quote ? "/$lockFileRegex/" : $lockFileRegex, $this->lockFiles);
+        return \array_map(fn ($lockFileRegex) => $lockFileRegex, $this->lockFiles);
     }
 
     /**
@@ -72,12 +76,7 @@ class DependencyFileFormat
 
     public function getRegex(): string
     {
-        return "/$this->regex/";
-    }
-
-    public function isLockFileFormat(): bool
-    {
-        return empty($this->lockFiles);
+        return $this->regex;
     }
 
     /**
@@ -85,7 +84,7 @@ class DependencyFileFormat
      */
     public function getRegexes(): array
     {
-        return \array_merge([$this->regex], $this->getLockFileRegexes());
+        return \array_merge([$this->getRegex()], $this->getLockFileRegexes());
     }
 
     public function setRegex(string $regex): void
