@@ -30,7 +30,7 @@ class Utility
         return \array_reduce(
             $arrayOfRegexes,
             function ($matchExists, $regex) use ($stringToMatch) {
-                return $matchExists || \preg_match('/^'.$regex.'$/', $stringToMatch);
+                return $matchExists || \preg_match("/^$regex$/", $stringToMatch);
             },
             false);
     }

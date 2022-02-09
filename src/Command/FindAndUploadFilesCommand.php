@@ -253,36 +253,33 @@ class FindAndUploadFilesCommand extends Command
         $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats);
 
         // Find lock files
-        $lockFileRegexes = \array_merge(...\array_map(fn ($format) => $format->getLockFileRegexes(true), $dependencyFileFormats));
-        $lockFileFinder = clone $finder;
-        $lockFileFinder->name($lockFileRegexes);
+        $lockFileRegexes = \array_merge(...\array_map(fn ($format) => $format->getLockFileRegexes(), $dependencyFileFormats));
         $lockFiles = [];
-        foreach ($lockFileFinder as $file) {
-            $lockFiles[$file->getPathname()] = $file;
+        foreach ($finder as $file) {
+            if (Utility::pregMatchInArray($file->getFilename(), $lockFileRegexes)) {
+                $lockFiles[$file->getPathname()] = $file;
+            }
         }
 
         /** Find dependency files and create FileGroups(@see FileGroup) */
-        $dependencyFileRegexes = \array_merge(\array_map(fn ($format) => $format->getRegex(), \array_values($dependencyFileFormats)));
-        $dependencyFileFinder = clone $finder;
-        $dependencyFileFinder->name($dependencyFileRegexes);
         $fileGroups = [];
-        foreach ($dependencyFileFinder as $file) {
-            $dependencyFileFormat = DependencyFileFormat::findFormatByFileName($dependencyFileFormats, $file->getFilename());
-            $fileGroup = new FileGroup($file, $dependencyFileFormat);
-            $lockFileRegexes = $dependencyFileFormat->getLockFileRegexes();
-            // Find matching lock file
-            foreach ($lockFileRegexes as $lockFileRegex) {
-                foreach ($lockFiles as $key => $lockFile) {
-                    $quotedLockfilePath = \preg_quote($file->getPath(), '/');
-                    $lockFilePattern = "/$quotedLockfilePath\/$lockFileRegex/";
-                    if (\preg_match($lockFilePattern, $key) === 1) {
-                        $fileGroup->addLockFile($lockFile);
-                        unset($lockFiles[$key]);
-                        break;
+        foreach ($finder as $file) {
+            if (($dependencyFileFormat = DependencyFileFormat::findFormatByFileName($dependencyFileFormats, $file->getFilename())) !== null) {
+                $fileGroup = new FileGroup($file, $dependencyFileFormat);
+                $lockFileRegexes = $dependencyFileFormat->getLockFileRegexes();
+                // Find matching lock file
+                foreach ($lockFileRegexes as $lockFileRegex) {
+                    foreach ($lockFiles as $key => $lockFile) {
+                        $quotedLockfilePath = \preg_quote($file->getPath(), '/');
+                        if (\preg_match("/$quotedLockfilePath\/$lockFileRegex/", $key) === 1) {
+                            $fileGroup->addLockFile($lockFile);
+                            unset($lockFiles[$key]);
+                            break;
+                        }
                     }
                 }
+                $fileGroups[] = $fileGroup;
             }
-            $fileGroups[] = $fileGroup;
         }
 
         // Create FileGroups from leftover lock files.
