@@ -94,7 +94,7 @@ class DependencyFileFormat
 
     public function getDocsLink(): string
     {
-        return $this->docsLink ?? '';
+        return $this->docsLink ?? 'https://debricked.com/docs/language-support';
     }
 
     public function setDocsLink(string $docsLink): void

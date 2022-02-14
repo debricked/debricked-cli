@@ -185,7 +185,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('[WARNING] This will result in slow scans and less precise results!', $output);
         $this->assertStringContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
         $this->assertStringContainsString('* .debricked-gradle-dependencies.txt', $output);
-        $this->assertStringContainsString('For more info: https://debricked.com/docs/language-support', $output);
+        $this->assertMatchesRegularExpression("/For more info: https:\/\/.*debricked\.com\/docs\/language-support/", $output);
         $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
     }
 
@@ -213,6 +213,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringNotContainsString('[WARNING] This will result in slow scans and less precise results!', $output);
         $this->assertStringNotContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
         $this->assertStringNotContainsString('For more info: https://debricked.com/docs/language-support', $output);
+        $this->assertDoesNotMatchRegularExpression("/For more info: https:\/\/.*debricked\.com\/docs\/language-support/", $output);
         $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
     }
 
