@@ -286,7 +286,8 @@ class FindAndUploadFilesCommand extends Command
 
         // Create FileGroups from leftover lock files.
         foreach ($lockFiles as $key => $lockFile) {
-            $lockFileGroup = new FileGroup($lockFile, null, true);
+            $lockFileGroup = new FileGroup(null, null);
+            $lockFileGroup->addLockFile($lockFile);
             $fileGroups[] = $lockFileGroup;
             unset($lockFiles[$key]);
         }
@@ -307,10 +308,11 @@ class FindAndUploadFilesCommand extends Command
                         $file,
                         $baseDirectory
                     );
-                    $progressBar->advance();
                 } catch (\Exception $e) {
                     $io->warning($e->getMessage());
+                    $fileGroup->unsetFile($file);
                 }
+                $progressBar->advance();
             }
         }
         $progressBar->finish();

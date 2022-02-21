@@ -14,7 +14,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 
 trait Style
 {
-    private function setProgressBarStyle(ProgressBar &$progressBar): void
+    private function setProgressBarStyle(ProgressBar $progressBar): void
     {
         $progressBar->setBarCharacter('<fg=green>=</>');
         $progressBar->setEmptyBarCharacter('<fg=red>-</>');
