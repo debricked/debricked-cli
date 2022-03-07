@@ -245,10 +245,6 @@ class FindAndUploadFilesCommand extends Command
         $commit = \strval($input->getArgument(self::ARGUMENT_COMMIT_NAME));
 
         $uploadId = null;
-        $progressBar = new ProgressBar($output);
-        $progressBar->start();
-        $progressBar->setFormat('%current% file(s) found [%bar%] %percent:3s%% %elapsed:6s%');
-        $this->setProgressBarStyle($progressBar);
 
         $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats);
         $numberOfMatchedFiles = 0;
@@ -292,36 +288,44 @@ class FindAndUploadFilesCommand extends Command
             unset($lockFiles[$key]);
         }
 
-        // Upload FileGroups
-        $progressBar->setMaxSteps($numberOfMatchedFiles);
-        foreach ($fileGroups as $fileGroup) {
-            foreach ($fileGroup->getFiles() as $file) {
-                try {
-                    $this->uploadDependencyFile(
-                        $uploadId,
-                        $repository,
-                        $commit,
-                        \strval($input->getOption(self::OPTION_BRANCH_NAME)),
-                        \strval($input->getOption(self::OPTION_DEFAULT_BRANCH)),
-                        \strval($input->getArgument(self::ARGUMENT_REPOSITORY_URL)),
-                        $api,
-                        $file,
-                        $baseDirectory
-                    );
-                } catch (\Exception $e) {
-                    $io->warning($e->getMessage());
-                    $fileGroup->unsetFile($file);
+        if ($numberOfMatchedFiles > 0) {
+            // Upload FileGroups
+            $progressBar = new ProgressBar($output);
+            $progressBar->start();
+            $progressBar->setFormat('%current% file(s) found [%bar%] %percent:3s%% %elapsed:6s%');
+            $this->setProgressBarStyle($progressBar);
+            $progressBar->setMaxSteps($numberOfMatchedFiles);
+            foreach ($fileGroups as $fileGroup) {
+                foreach ($fileGroup->getFiles() as $file) {
+                    try {
+                        $this->uploadDependencyFile(
+                            $uploadId,
+                            $repository,
+                            $commit,
+                            \strval($input->getOption(self::OPTION_BRANCH_NAME)),
+                            \strval($input->getOption(self::OPTION_DEFAULT_BRANCH)),
+                            \strval($input->getArgument(self::ARGUMENT_REPOSITORY_URL)),
+                            $api,
+                            $file,
+                            $baseDirectory
+                        );
+                    } catch (\Exception $e) {
+                        $io->warning($e->getMessage());
+                        $fileGroup->unsetFile($file);
+                    }
+                    $progressBar->advance();
                 }
-                $progressBar->advance();
             }
-        }
-        $progressBar->finish();
-        $io->newLine(2);
+            $progressBar->finish();
+            $io->newLine(2);
 
-        // Print FileGroups
-        $io->section('Uploaded files');
-        foreach ($fileGroups as $fileGroup) {
-            $fileGroup->ioPrint($io, $searchDirectory);
+            // Print FileGroups
+            $io->section('Uploaded files');
+            foreach ($fileGroups as $fileGroup) {
+                $fileGroup->ioPrint($io, $searchDirectory);
+            }
+        } else {
+            $io->warning('No dependency files to upload!');
         }
 
         // If Snippet analysis or source code zipping is enabled traverse all files again
@@ -335,6 +339,7 @@ class FindAndUploadFilesCommand extends Command
 
             return 1;
         }
+        $uploadAllFiles = $uploadAllFiles && $numberOfMatchedFiles > 0;
         if ($enableSnippetAnalysis === true || $uploadAllFiles === true) {
             $zip = null;
             $progressBar = null;
