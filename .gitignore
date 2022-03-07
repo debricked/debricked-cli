@@ -88,3 +88,5 @@ fabric.properties
 /.bash_history
 /.phpunit.result.cache
 /test-*
+
+tests/Analysis/TestFiles/package-lock.json

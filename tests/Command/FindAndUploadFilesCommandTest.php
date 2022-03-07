@@ -55,6 +55,59 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('Invalid credentials.', $output);
     }
 
+    public function testExecuteNoFilesFound()
+    {
+        $this->setUpReal();
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'azureDevOps',
+            '--branch-name' => 'test-branch',
+            '--author' => 'test-author',
+            'base-directory' => '/tests/Utility',
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+
+        $this->assertStringContainsString('No dependency files to upload!', $output);
+        $this->assertStringContainsString('Nothing to upload!', $output);
+
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
+        $this->assertStringNotContainsString('You can now execute bin/console debricked:check-scan', $output);
+    }
+
+    public function testExecuteNoFilesFoundWithSnippetAnalysis()
+    {
+        $this->setUpReal();
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            'repository-name' => 'test-repository',
+            'commit-name' => 'test-commit',
+            'repository-url' => 'repository-url',
+            'integration-name' => 'azureDevOps',
+            '--branch-name' => 'test-branch',
+            '--author' => 'test-author',
+            '--upload-all-files' => true,
+            '--snippet-analysis' => null,
+            'base-directory' => '/tests/Utility',
+        ]);
+        $output = $this->commandTester->getDisplay();
+        $this->assertEquals(0, $this->commandTester->getStatusCode(), $output);
+
+        $this->assertStringContainsString('No dependency files to upload!', $output);
+        $this->assertStringContainsString('Snippet analysis complete!', $output);
+        $this->assertStringContainsString('You can now execute bin/console debricked:check-scan', $output);
+
+        $this->assertStringNotContainsString('Nothing to upload!', $output);
+        $this->assertStringNotContainsString('Successfully uploaded zip file containing source code', $output);
+    }
+
     public function testExecute()
     {
         $this->setUpReal();
@@ -354,7 +407,10 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
     public function testSnippetAnalysisWithUploadAllFiles()
     {
         $this->setUpReal();
-        // TestFiles doesn't have any dependency file, so the only thing uploaded is the fingerprints.
+
+        // In order for upload-all-files to work there must exist at least on dependency file.
+        \file_put_contents(__DIR__.'/../Analysis/TestFiles/package-lock.json', '{}');
+
         $this->commandTester->execute([
             'command' => $this->command->getName(),
             FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
@@ -374,9 +430,10 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('Successfully uploaded zip file containing source code', $output);
 
         $files = $this->zipFileContents('test-wfp', 'does-upload-all');
-        $this->assertCount(2, $files, 'These files were in zip: '.json_encode($files));
+        $this->assertCount(3, $files, 'These files were in zip: '.json_encode($files));
         $this->assertContains('tests/Analysis/TestFiles/TestSourceCombinedOutput.php', $files);
         $this->assertContains('tests/Analysis/TestFiles/TestSourceKernel.php', $files);
+        $this->assertContains('tests/Analysis/TestFiles/package-lock.json', $files);
     }
 
     public function testSnippetAnalysisDisabled()
@@ -663,5 +720,13 @@ EOD;
         $application->add(new FindAndUploadFilesCommand($mockClient));
         $this->command = $application->find(FindAndUploadFilesCommand::getDefaultName());
         $this->commandTester = new CommandTester($this->command);
+    }
+
+    public function tearDown(): void
+    {
+        parent::tearDown();
+        if (\is_file(__DIR__.'/../Analysis/TestFiles/package-lock.json')) {
+            \unlink(__DIR__.'/../Analysis/TestFiles/package-lock.json');
+        }
     }
 }
