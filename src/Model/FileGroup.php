@@ -3,6 +3,8 @@
 namespace App\Model;
 
 use App\Utility\Utility;
+use JsonSerializable;
+use stdClass;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -10,19 +12,21 @@ use Symfony\Component\Finder\SplFileInfo;
  * A FileGroup is a group of connected files.
  * It has one dependency file and if existing, one or several lock files.
  */
-class FileGroup
+class FileGroup implements JsonSerializable
 {
     private ?SplFileInfo $dependencyFile;
     private ?DependencyFileFormat $dependencyFileFormat;
+    private string $searchDirectory;
     /**
      * @var SplFileInfo[]
      */
     private array $lockFiles;
 
-    public function __construct(?SplFileInfo $dependencyFile, ?DependencyFileFormat $dependencyFileFormat)
+    public function __construct(?SplFileInfo $dependencyFile, ?DependencyFileFormat $dependencyFileFormat, string $searchDirectory)
     {
         $this->dependencyFile = $dependencyFile;
         $this->dependencyFileFormat = $dependencyFileFormat;
+        $this->searchDirectory = $searchDirectory;
         $this->lockFiles = [];
     }
 
@@ -131,5 +135,53 @@ class FileGroup
                 }
             }
         }
+    }
+
+    public function serialize(string $searchDirectory): object
+    {
+        $fileGroup = new StdClass();
+        $pathName = '';
+        if ($this->dependencyFile instanceof SplFileInfo) {
+            $pathName = $this->dependencyFile->getPathname() ?? '';
+            $pathName = \str_replace($searchDirectory, '', $pathName);
+            $pathName = Utility::normaliseRelativePath($pathName);
+        }
+        $fileGroup->{'dependencyFile'} = $pathName;
+        $lockFiles = [];
+        foreach ($this->lockFiles as $lockFile) {
+            $lockFileName = \str_replace($searchDirectory, '', $lockFile->getPathname());
+            $lockFileName = Utility::normaliseRelativePath($lockFileName);
+            $lockFiles[] = $lockFileName;
+        }
+        $fileGroup->{'lockFiles'} = $lockFiles;
+
+        return $fileGroup;
+    }
+
+    /**
+     * @return array{dependencyFile: string, lockFiles: string[]}
+     */
+    public function jsonSerialize(): array
+    {
+        $fileGroup = [];
+        $fileGroup['dependencyFile'] = $this->dependencyFile instanceof SplFileInfo ? $this->getDependencyFilePath() : '';
+        $fileGroup['lockFiles'] = \array_map(fn ($lockFile) => $this->getLockFilePath($lockFile), $this->lockFiles);
+
+        return $fileGroup;
+    }
+
+    private function getDependencyFilePath(): string
+    {
+        $pathName = $this->dependencyFile->getPathname() ?? '';
+        $pathName = \str_replace($this->searchDirectory, '', $pathName);
+
+        return Utility::normaliseRelativePath($pathName);
+    }
+
+    private function getLockFilePath(SplFileInfo $lockFile): string
+    {
+        $lockFileName = \str_replace($this->searchDirectory, '', $lockFile->getPathname());
+
+        return Utility::normaliseRelativePath($lockFileName);
     }
 }
