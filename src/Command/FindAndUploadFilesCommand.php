@@ -12,8 +12,7 @@
 namespace App\Command;
 
 use App\Analysis\SnippetAnalysis;
-use App\Model\DependencyFileFormat;
-use App\Model\FileGroup;
+use App\Service\FileGroupFinder;
 use App\Utility\Utility;
 use Debricked\Shared\API\API;
 use Symfony\Component\Console\Command\Command;
@@ -23,12 +22,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -40,7 +40,7 @@ class FindAndUploadFilesCommand extends Command
 
     protected static $defaultName = 'debricked:find-and-upload-files';
 
-    private const ARGUMENT_BASE_DIRECTORY = 'base-directory';
+    public const ARGUMENT_BASE_DIRECTORY = 'base-directory';
     public const ARGUMENT_USERNAME = 'username';
     public const ARGUMENT_PASSWORD = 'password';
     private const ARGUMENT_REPOSITORY_NAME = 'repository-name';
@@ -49,10 +49,10 @@ class FindAndUploadFilesCommand extends Command
     private const ARGUMENT_INTEGRATION_NAME = 'integration-name';
     private const OPTION_BRANCH_NAME = 'branch-name';
     private const OPTION_DEFAULT_BRANCH = 'default-branch';
-    private const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
+    public const OPTION_DIRECTORIES_TO_EXCLUDE = 'excluded-directories';
     private const OPTION_SNIPPET_ANALYSIS = 'snippet-analysis';
     private const OPTION_KEEP_ZIP = 'keep-zip';
-    private const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
+    public const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
     private const OPTION_AUTHOR = 'author';
 
@@ -187,40 +187,15 @@ class FindAndUploadFilesCommand extends Command
                 'Failed to get current working directory, command might be searching through unexpected directories and files'
             );
         }
-
         /** @var string $baseDirectory */
         $baseDirectory = $input->getArgument(self::ARGUMENT_BASE_DIRECTORY);
-
-        $io->writeln('Getting supported dependency file names from Debricked', OutputInterface::VERBOSITY_VERBOSE);
-
-        try {
-            $dependencyFileNamesResponse = $api->makeApiCall(
-                Request::METHOD_GET,
-                '/api/1.0/open/files/supported-formats'
-            );
-            $dependencyFileFormats = \json_decode($dependencyFileNamesResponse->getContent(), true);
-        } catch (TransportExceptionInterface $e) {
-            $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
-
-            return 1;
-        } catch (ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $e) {
-            /* @noinspection PhpUnhandledExceptionInspection */
-            $io->error("Failed to get supported dependency file names: {$e->getResponse()->getContent(false)}");
-
-            return 1;
-        }
-
-        $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
         $searchDirectory = "{$workingDirectory}/{$baseDirectory}";
         $searchDirectory = preg_replace('#/+#', '/', $searchDirectory); // remove duplicate slashes.
 
-        $finder = new Finder();
-        $finder->ignoreDotFiles(false);
-        $finder->files()->in($searchDirectory);
-        if (empty($directoriesToExcludeString) === false && \is_array(
-                $directoriesToExcludeArray = \explode(',', $directoriesToExcludeString)
-            )) {
-            $finder->exclude($directoriesToExcludeArray);
+        $directoriesToExcludeString = \strval($input->getOption(self::OPTION_DIRECTORIES_TO_EXCLUDE));
+        $directoriesToExcludeArray = [];
+        if (empty($directoriesToExcludeString) === false) {
+            $directoriesToExcludeArray = \explode(',', $directoriesToExcludeString) ?? [];
         } else {
             $io->note('No directories will be ignored');
         }
@@ -231,7 +206,6 @@ class FindAndUploadFilesCommand extends Command
 
             return 1;
         } elseif ($recursiveFileSearch === false) {
-            $finder->depth(0);
             $io->note('Recursive search is disabled, only base directory will be searched');
         }
 
@@ -246,46 +220,27 @@ class FindAndUploadFilesCommand extends Command
 
         $uploadId = null;
 
-        $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats);
+        try {
+            $io->writeln('Getting supported dependency file names from Debricked', OutputInterface::VERBOSITY_VERBOSE);
+            $fileGroups = FileGroupFinder::find($api, $searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray);
+        } catch (TransportExceptionInterface $e) {
+            $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
+
+            return 1;
+        } catch (HttpExceptionInterface $e) {
+            /* @noinspection PhpUnhandledExceptionInspection */
+            $io->error("Failed to get supported dependency file names: {$e->getResponse()->getContent(false)}");
+
+            return 1;
+        } catch (DirectoryNotFoundException $e) {
+            $io->error("Failed to find directory: {$e->getMessage()}");
+
+            return 1;
+        }
+
         $numberOfMatchedFiles = 0;
-        // Find lock files
-        $lockFileRegexes = \array_merge(...\array_map(fn ($format) => $format->getLockFileRegexes(), $dependencyFileFormats));
-        $lockFiles = [];
-        foreach ($finder as $file) {
-            if (Utility::pregMatchInArray($file->getFilename(), $lockFileRegexes)) {
-                $lockFiles[$file->getPathname()] = $file;
-                ++$numberOfMatchedFiles;
-            }
-        }
-
-        /** Find dependency files and create FileGroups(@see FileGroup) */
-        $fileGroups = [];
-        foreach ($finder as $file) {
-            if (($dependencyFileFormat = DependencyFileFormat::findFormatByFileName($dependencyFileFormats, $file->getFilename())) !== null) {
-                $fileGroup = new FileGroup($file, $dependencyFileFormat);
-                $lockFileRegexes = $dependencyFileFormat->getLockFileRegexes();
-                // Find matching lock file
-                foreach ($lockFileRegexes as $lockFileRegex) {
-                    foreach ($lockFiles as $key => $lockFile) {
-                        $quotedLockfilePath = \preg_quote($file->getPath(), '/');
-                        if (\preg_match("/$quotedLockfilePath\/$lockFileRegex/", $key) === 1) {
-                            $fileGroup->addLockFile($lockFile);
-                            unset($lockFiles[$key]);
-                            break;
-                        }
-                    }
-                }
-                $fileGroups[] = $fileGroup;
-                ++$numberOfMatchedFiles;
-            }
-        }
-
-        // Create FileGroups from leftover lock files.
-        foreach ($lockFiles as $key => $lockFile) {
-            $lockFileGroup = new FileGroup(null, null);
-            $lockFileGroup->addLockFile($lockFile);
-            $fileGroups[] = $lockFileGroup;
-            unset($lockFiles[$key]);
+        foreach ($fileGroups as $fileGroup) {
+            $numberOfMatchedFiles += count($fileGroup->getFiles());
         }
 
         if ($numberOfMatchedFiles > 0) {
@@ -341,6 +296,7 @@ class FindAndUploadFilesCommand extends Command
         }
         $uploadAllFiles = $uploadAllFiles && $numberOfMatchedFiles > 0;
         if ($enableSnippetAnalysis === true || $uploadAllFiles === true) {
+            $finder = FileGroupFinder::makeFinder($searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray);
             $zip = null;
             $progressBar = null;
             if ($uploadAllFiles === true) {
