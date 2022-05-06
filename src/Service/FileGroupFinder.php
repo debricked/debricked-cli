@@ -47,7 +47,7 @@ class FileGroupFinder
         $finder = new Finder();
         $finder->ignoreDotFiles(false);
         $finder->files()->in($searchDirectory);
-        $finder->exclude($excludedDirectories);
+        $finder->notPath($excludedDirectories);
         if (!$recursiveFileSearch) {
             $finder->depth(0);
         }

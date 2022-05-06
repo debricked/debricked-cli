@@ -56,4 +56,19 @@ class FileGroupFinderTest extends TestCase
         $this->expectException(TransportExceptionInterface::class);
         FileGroupFinder::find($this->apiMock, getcwd(), true, []);
     }
+
+    public function testFindExcludedFilesAreIgnored(): void
+    {
+        $excludedFile1 = 'bin/.phpunit/phpunit-7.5-0/composer.lock';
+        $excludedFile2 = 'bin/.phpunit/phpunit-9.5-0/composer.lock';
+        $excludedFiles = [$excludedFile1, $excludedFile2];
+        $fileGroups = FileGroupFinder::find($this->apiMock, getcwd(), true, ['vendor', 'tests', $excludedFile1, $excludedFile2]);
+        $this->assertGreaterThan(2, $fileGroups);
+        foreach ($fileGroups as $fileGroup) {
+            foreach ($fileGroup->getLockFiles() as $file) {
+                $fileName = $file->getBasename();
+                $this->assertFalse(\in_array($fileName, $excludedFiles), 'failed to assert that the file was excluded');
+            }
+        }
+    }
 }
