@@ -81,7 +81,7 @@ class FileGroupFinder
      *
      * @return FileGroup[]
      */
-    private static function createFileGroups(array $lockFiles, Finder $finder, array $dependencyFileFormats, string $searchDirectory): array
+    public static function createFileGroups(array $lockFiles, Finder $finder, array $dependencyFileFormats, string $searchDirectory): array
     {
         $fileGroups = [];
         foreach ($finder as $file) {
@@ -92,7 +92,10 @@ class FileGroupFinder
                 foreach ($lockFileRegexes as $lockFileRegex) {
                     foreach ($lockFiles as $key => $lockFile) {
                         $quotedLockfilePath = \preg_quote($file->getPath(), '/');
-                        if (\preg_match("/$quotedLockfilePath\/$lockFileRegex/", $key) === 1) {
+                        if (
+                            \preg_match("/{$quotedLockfilePath}\/{$lockFileRegex}/", $key) === 1 ||
+                            \preg_match("/{$quotedLockfilePath}\\\\{$lockFileRegex}/", $key) === 1
+                        ) {
                             $fileGroup->addLockFile($lockFile);
                             unset($lockFiles[$key]);
                             break;
