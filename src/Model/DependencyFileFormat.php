@@ -16,7 +16,7 @@ class DependencyFileFormat
      *
      * @return DependencyFileFormat[]
      */
-    public static function make(array $formats, bool $lockFileOnly): array
+    public static function make(array $formats, bool $lockFileOnly = false): array
     {
         $dependencyFormats = [];
         foreach ($formats as $format) {

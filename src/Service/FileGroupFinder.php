@@ -22,7 +22,7 @@ class FileGroupFinder
      *
      * @throws TransportExceptionInterface|HttpExceptionInterface|DirectoryNotFoundException
      */
-    public static function find(API $api, string $searchDirectory, bool $recursiveFileSearch, array $excludedDirectories, bool $lockFileOnly): array
+    public static function find(API $api, string $searchDirectory, bool $recursiveFileSearch, array $excludedDirectories, bool $lockFileOnly = false): array
     {
         $finder = self::makeFinder($searchDirectory, $recursiveFileSearch, $excludedDirectories);
 
