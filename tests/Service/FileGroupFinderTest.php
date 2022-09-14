@@ -19,7 +19,7 @@ class FileGroupFinderTest extends TestCase
     public function setUp(): void
     {
         $this->apiMock = $this->getMockBuilder(API::class)->disableOriginalConstructor()->getMock();
-        $responseMock = $this->getMockBuilder(ResponseInterface::class)->disableOriginalConstructor()->getMock();
+        $responseMock = $this->getMockBuilder(ResponseInterface::class)->getMock();
 
         $responseMock->expects($this->atMost(1))->method('getContent')->willReturn(FindAndUploadFilesCommandTest::FORMATS_JSON_STRING);
 
@@ -70,5 +70,17 @@ class FileGroupFinderTest extends TestCase
                 $this->assertFalse(\in_array($fileName, $excludedFiles), 'failed to assert that the file was excluded');
             }
         }
+    }
+
+    public function testFindOnlyLockFiles(): void
+    {
+        $fileGroups = FileGroupFinder::find($this->apiMock, getcwd(), false, [], true);
+        $this->assertCount(1, $fileGroups);
+        $fileGroup = $fileGroups[0];
+        $this->assertNull($fileGroup->getDependencyFile());
+        $this->assertNotEmpty($fileGroup->getLockFiles());
+        $this->assertCount(1, $fileGroup->getLockFiles());
+        $lockFile = $fileGroup->getLockFiles()[0];
+        $this->assertInstanceOf(\SplFileInfo::class, $lockFile);
     }
 }

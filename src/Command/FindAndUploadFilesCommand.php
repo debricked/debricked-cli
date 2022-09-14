@@ -55,6 +55,7 @@ class FindAndUploadFilesCommand extends Command
     public const OPTION_RECURSIVE_FILE_SEARCH = 'recursive-file-search';
     private const OPTION_UPLOAD_ALL_FILES = 'upload-all-files';
     private const OPTION_AUTHOR = 'author';
+    private const OPTION_LOCK_FILE_ONLY = 'lockfile';
 
     private HttpClientInterface $debrickedClient;
 
@@ -167,6 +168,12 @@ class FindAndUploadFilesCommand extends Command
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Default branch for the repository'
+            )
+            ->addOption(
+                self::OPTION_LOCK_FILE_ONLY,
+                'l',
+                InputOption::VALUE_NONE,
+                'Use this option to output lock files only'
             );
     }
 
@@ -217,12 +224,13 @@ class FindAndUploadFilesCommand extends Command
 
         $repository = \strval($input->getArgument(self::ARGUMENT_REPOSITORY_NAME));
         $commit = \strval($input->getArgument(self::ARGUMENT_COMMIT_NAME));
+        $lockFileOnly = (bool) $input->getOption(self::OPTION_LOCK_FILE_ONLY);
 
         $uploadId = null;
 
         try {
             $io->writeln('Getting supported dependency file names from Debricked', OutputInterface::VERBOSITY_VERBOSE);
-            $fileGroups = FileGroupFinder::find($api, $searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray);
+            $fileGroups = FileGroupFinder::find($api, $searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray, $lockFileOnly);
         } catch (TransportExceptionInterface $e) {
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
 

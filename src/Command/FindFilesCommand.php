@@ -30,6 +30,7 @@ class FindFilesCommand extends Command
     protected static $defaultName = 'debricked:files:find';
 
     private const OPTION_JSON = 'json';
+    private const OPTION_LOCK_FILE_ONLY = 'lockfile';
 
     private HttpClientInterface $debrickedClient;
 
@@ -78,6 +79,12 @@ class FindFilesCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Enter a comma separated list of directories to exclude. Such as: --excluded-directories="vendor,node_modules,tests"',
                 'vendor,node_modules,tests'
+            )
+            ->addOption(
+                self::OPTION_LOCK_FILE_ONLY,
+                'l',
+                InputOption::VALUE_NONE,
+                'Use this option to output lock files only'
             );
     }
 
@@ -101,6 +108,7 @@ class FindFilesCommand extends Command
         $searchDirectory = preg_replace('#/+#', '/', $searchDirectory); // remove duplicate slashes.
 
         $recursiveFileSearch = (bool) $input->getOption(FindAndUploadFilesCommand::OPTION_RECURSIVE_FILE_SEARCH);
+
         $directoriesToExcludeString = $input->getOption(FindAndUploadFilesCommand::OPTION_DIRECTORIES_TO_EXCLUDE);
         $directoriesToExcludeArray = [];
         if (empty($directoriesToExcludeString) === false) {
@@ -109,8 +117,10 @@ class FindFilesCommand extends Command
             $io->note('No directories will be ignored');
         }
 
+        $lockFileOnly = (bool) $input->getOption(self::OPTION_LOCK_FILE_ONLY);
+
         try {
-            $fileGroups = FileGroupFinder::find($api, $searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray);
+            $fileGroups = FileGroupFinder::find($api, $searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray, $lockFileOnly);
         } catch (TransportExceptionInterface $e) {
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
 

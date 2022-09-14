@@ -121,7 +121,7 @@ class CheckScanCommand extends Command
                 $fgColor = 'blue';
             }
 
-            $io->text("<fg=${fgColor};options=bold>⨯ The rule triggered, causing ${causingString}</>");
+            $io->text("<fg={$fgColor};options=bold>⨯ The rule triggered, causing {$causingString}</>");
         }
 
         $io->text('  Manage rule: <fg=blue>'.$ruleOutputData['ruleLink'].'</>');
@@ -258,7 +258,7 @@ class CheckScanCommand extends Command
             } elseif ($numRulesChecked === 1) {
                 $io->text('1 rule was checked:');
             } else {
-                $io->text("${numRulesChecked} rules were checked:");
+                $io->text("{$numRulesChecked} rules were checked:");
             }
 
             foreach ($status['automationRules'] as $rule) {

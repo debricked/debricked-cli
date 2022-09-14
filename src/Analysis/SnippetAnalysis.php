@@ -72,7 +72,7 @@ class SnippetAnalysis
             return null;
         }
 
-        /* Gram/Window configuration. Modifying these values would require rehashing the KB	*/
+        /* Gram/Window configuration. Modifying these values would require rehashing the KB */
         $GRAM = 30;
         $WINDOW = 64;
         $LIMIT = 10000;

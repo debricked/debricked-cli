@@ -61,15 +61,15 @@ class FindFilesCommandTest extends KernelTestCase
             $this->assertIsArray($fileGroup['lockFiles']);
         }
         [$fileGroup1, $fileGroup2] = [$fileGroups[0], $fileGroups[1]];
-        $this->assertEquals('composer.json', $fileGroup1['dependencyFile']);
+        $this->assertEquals('bin/.phpunit/phpunit-9.5-0/composer.json', $fileGroup1['dependencyFile']);
         $this->assertCount(1, $fileGroup1['lockFiles']);
         $lockFile = $fileGroup1['lockFiles'][0];
-        $this->assertEquals('composer.lock', $lockFile);
+        $this->assertEquals('bin/.phpunit/phpunit-9.5-0/composer.lock', $lockFile);
 
-        $this->assertEquals('bin/.phpunit/phpunit-9.5-0/composer.json', $fileGroup2['dependencyFile']);
+        $this->assertEquals('composer.json', $fileGroup2['dependencyFile']);
         $this->assertCount(1, $fileGroup2['lockFiles']);
         $lockFile = $fileGroup2['lockFiles'][0];
-        $this->assertEquals('bin/.phpunit/phpunit-9.5-0/composer.lock', $lockFile);
+        $this->assertEquals('composer.lock', $lockFile);
     }
 
     public function testExecuteInvalidCredentials(): void
