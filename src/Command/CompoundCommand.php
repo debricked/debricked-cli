@@ -89,10 +89,10 @@ class CompoundCommand extends FindAndUploadFilesCommand
         $findAndUploadOutput = $findAndUploadOutput->fetch();
         $uploadIdMatches = [];
         if (\preg_match(
-                "/bin\/console {$checkScanCommand->getName()} your-username your-password (\w+)/m",
-                $findAndUploadOutput,
-                $uploadIdMatches
-            ) !== 1) {
+            "/bin\/console {$checkScanCommand->getName()} your-username your-password (\w+)/m",
+            $findAndUploadOutput,
+            $uploadIdMatches
+        ) !== 1) {
             return 0;
         }
         $uploadId = $uploadIdMatches[1];
@@ -136,9 +136,9 @@ class CompoundCommand extends FindAndUploadFilesCommand
             $output->getFormatter()
         );
 
-        //This will return all given options merged with default values for ungiven options
+        // This will return all given options merged with default values for ungiven options
         $options = $input->getOptions();
-        //Unset option because it does not exist in FindAndUploadFilesCommand
+        // Unset option because it does not exist in FindAndUploadFilesCommand
         unset($options[self::OPTION_DISABLE_CONDITIONAL_SKIP_SCAN]);
         $newOptions = [];
         foreach ($options as $option => $value) {

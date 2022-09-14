@@ -16,11 +16,15 @@ class DependencyFileFormat
      *
      * @return DependencyFileFormat[]
      */
-    public static function make(array $formats): array
+    public static function make(array $formats, bool $lockFileOnly): array
     {
         $dependencyFormats = [];
         foreach ($formats as $format) {
-            $dependencyFormats[] = new self($format['regex'], $format['documentationUrl'], $format['lockFileRegexes']);
+            if ($lockFileOnly) {
+                $dependencyFormats[] = new self('', $format['documentationUrl'], $format['lockFileRegexes']);
+            } else {
+                $dependencyFormats[] = new self($format['regex'], $format['documentationUrl'], $format['lockFileRegexes']);
+            }
         }
 
         return $dependencyFormats;

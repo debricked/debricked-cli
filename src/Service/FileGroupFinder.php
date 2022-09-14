@@ -22,7 +22,7 @@ class FileGroupFinder
      *
      * @throws TransportExceptionInterface|HttpExceptionInterface|DirectoryNotFoundException
      */
-    public static function find(API $api, string $searchDirectory, bool $recursiveFileSearch, array $excludedDirectories): array
+    public static function find(API $api, string $searchDirectory, bool $recursiveFileSearch, array $excludedDirectories, bool $lockFileOnly): array
     {
         $finder = self::makeFinder($searchDirectory, $recursiveFileSearch, $excludedDirectories);
 
@@ -32,7 +32,7 @@ class FileGroupFinder
             '/api/1.0/open/files/supported-formats'
         );
         $dependencyFileFormats = \json_decode($dependencyFileNamesResponse->getContent(), true);
-        $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats);
+        $dependencyFileFormats = DependencyFileFormat::make($dependencyFileFormats, $lockFileOnly);
 
         $lockFiles = self::findLockFiles($finder, $dependencyFileFormats);
 
