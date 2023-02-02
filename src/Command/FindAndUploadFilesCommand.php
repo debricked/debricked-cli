@@ -373,6 +373,7 @@ class FindAndUploadFilesCommand extends Command
             $formFields = ['ciUploadId' => \strval($uploadId)];
             $formFields['integrationName'] = $input->getArgument(self::ARGUMENT_INTEGRATION_NAME);
             $formFields['author'] = $input->getOption(self::OPTION_AUTHOR);
+            $formFields['debrickedIntegration'] = 'legacy-cli';
 
             if ($uploadAllFiles && $successfullyCreatedZip) {
                 $formFields['repositoryName'] = $repository;
