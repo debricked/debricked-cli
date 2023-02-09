@@ -187,10 +187,10 @@ class FindFilesCommand extends Command
 
         if ($lockFileOnly && $strictness > FileGroupFinder::STRICT_ALL) {
             throw new \LogicException("'lockfile' and 'strict' flags are mutually exclusive");
-	    }
+        }
 
         if ($strictness < FileGroupFinder::STRICT_ALL || $strictness > FileGroupFinder::STRICT_PAIRS) {
             throw new \LogicException("'strict' supports values within range 0-2");
-	    }
+        }
     }
 }
