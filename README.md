@@ -82,6 +82,7 @@ and related tests.
 ```text
 DEBRICKED_USERNAME=your debricked username
 DEBRICKED_PASSWORD=your debricked password
+DEBRICKED_TOKEN=your debricked token
 ```
 2. Run tests! You can now run the tests locally by executing `./localTest.sh` in your terminal.
 

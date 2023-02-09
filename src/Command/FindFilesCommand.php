@@ -30,7 +30,8 @@ class FindFilesCommand extends Command
     protected static $defaultName = 'debricked:files:find';
 
     private const OPTION_JSON = 'json';
-    private const OPTION_LOCK_FILE_ONLY = 'lockfile';
+    public const OPTION_LOCK_FILE_ONLY = 'lockfile';
+    public const OPTION_STRICTNESS = 'strict';
 
     private HttpClientInterface $debrickedClient;
 
@@ -85,6 +86,18 @@ class FindFilesCommand extends Command
                 'l',
                 InputOption::VALUE_NONE,
                 'Use this option to output lock files only'
+            )
+            ->addOption(
+                self::OPTION_STRICTNESS,
+                's',
+                InputOption::VALUE_OPTIONAL,
+                'Allows to control which files will be matched:
+                Strictness Level | Meaning
+                ---------------- | -------
+                0 (default)      | Returns all matched manifest and lock files regardless if they\'re paired or not
+                1                | Returns only lock files and pairs of manifest and lock-file
+                2                | Returns only pairs of manifest and lock-file',
+                FileGroupFinder::STRICT_ALL
             );
     }
 
@@ -117,10 +130,17 @@ class FindFilesCommand extends Command
             $io->note('No directories will be ignored');
         }
 
-        $lockFileOnly = (bool) $input->getOption(self::OPTION_LOCK_FILE_ONLY);
-
         try {
-            $fileGroups = FileGroupFinder::find($api, $searchDirectory, $recursiveFileSearch, $directoriesToExcludeArray, $lockFileOnly);
+            $this->assertFlagsAreValid($input);
+
+            $fileGroups = FileGroupFinder::find(
+                $api,
+                $searchDirectory,
+                $recursiveFileSearch,
+                $directoriesToExcludeArray,
+                (bool) $input->getOption(self::OPTION_LOCK_FILE_ONLY),
+                (int) $input->getOption(self::OPTION_STRICTNESS),
+            );
         } catch (TransportExceptionInterface $e) {
             $io->error("Failed to get supported dependency file names: {$e->getMessage()}");
 
@@ -132,6 +152,10 @@ class FindFilesCommand extends Command
             return Command::FAILURE;
         } catch (DirectoryNotFoundException $e) {
             $io->error("Failed to find directory: {$e->getMessage()}");
+
+            return Command::FAILURE;
+        } catch (\LogicException $e) {
+            $io->error($e->getMessage());
 
             return Command::FAILURE;
         }
@@ -154,5 +178,19 @@ class FindFilesCommand extends Command
         }
 
         return 0;
+    }
+
+    private function assertFlagsAreValid(InputInterface $input): void
+    {
+        $lockFileOnly = (bool) $input->getOption(self::OPTION_LOCK_FILE_ONLY);
+        $strictness = (int) $input->getOption(self::OPTION_STRICTNESS);
+
+        if ($lockFileOnly && $strictness > FileGroupFinder::STRICT_ALL) {
+            throw new \LogicException("'lockfile' and 'strict' flags are mutually exclusive");
+	    }
+
+        if ($strictness < FileGroupFinder::STRICT_ALL || $strictness > FileGroupFinder::STRICT_PAIRS) {
+            throw new \LogicException("'strict' supports values within range 0-2");
+	    }
     }
 }

@@ -7,6 +7,7 @@ use App\Tests\Command\FindAndUploadFilesCommandTest;
 use Debricked\Shared\API\API;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpClient\Exception\TimeoutException;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -82,5 +83,71 @@ class FileGroupFinderTest extends TestCase
         $this->assertCount(1, $fileGroup->getLockFiles());
         $lockFile = $fileGroup->getLockFiles()[0];
         $this->assertInstanceOf(\SplFileInfo::class, $lockFile);
+    }
+
+    /**
+     * @dataProvider findWithStrictOptionProvider
+     *
+     * @param string[]|null $expectedLockFiles
+     */
+    public function testFindWithStrictOption(
+        int $strictness,
+        int $testedGroupIndex,
+        int $expectedNumberOfGroups,
+        ?string $expectedManifestFile = null,
+        ?array $expectedLockFiles = []
+    ): void {
+        $fileGroups = FileGroupFinder::find($this->apiMock, getcwd(), true, ['vendor', 'bin'], false, $strictness);
+
+        $this->assertCount($expectedNumberOfGroups, $fileGroups);
+
+        $fileGroup = $fileGroups[$testedGroupIndex];
+
+        $this->assertSame(
+            $expectedManifestFile,
+            $fileGroup->getDependencyFile() ? $fileGroup->getDependencyFile()->getRelativePathname() : null,
+        );
+
+        $this->assertSame(
+            $expectedLockFiles,
+            array_map(
+                static function (SplFileInfo $lockFileInfo) { return $lockFileInfo->getRelativePathname(); },
+                array_filter($fileGroup->getLockFiles()),
+            ),
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function findWithStrictOptionProvider(): array
+    {
+        return [
+            'strict=0' => [
+                'strictness' => 0,
+                'testedGroupIndex' => 0,
+			    'expectedNumberOfGroups' => 10,
+                'expectedManifestFile' => 'composer.json',
+			    'expectedLockFiles' => [],
+            ],
+            'strict=1' => [
+                'strictness' => 1,
+                'testedGroupIndex' => 5,
+                'expectedNumberOfGroups' => 6,
+                'expectedManifestFile' => null,
+                'expectedLockFiles' => [
+                    'tests/DependencyFiles/composer.lock',
+                ],
+            ],
+            'strict=2' => [
+                'strictness' => 2,
+                'testedGroupIndex' => 0,
+                'expectedNumberOfGroups' => 4,
+                'expectedManifestFile' => 'composer.json',
+                'expectedLockFiles' => [
+                    'composer.lock',
+                ],
+            ],
+        ];
     }
 }

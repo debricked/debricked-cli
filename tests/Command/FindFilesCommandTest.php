@@ -4,6 +4,7 @@ namespace App\Tests\Command;
 
 use App\Command\FindAndUploadFilesCommand;
 use App\Command\FindFilesCommand;
+use App\Service\FileGroupFinder;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -123,5 +124,38 @@ class FindFilesCommandTest extends KernelTestCase
         $fileGroups = \json_decode($output);
         $this->assertIsArray($fileGroups);
         $this->assertEmpty($fileGroups);
+    }
+
+    public function testExecuteWithInvalidStrictOption(): void
+    {
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            FindAndUploadFilesCommand::ARGUMENT_BASE_DIRECTORY => 'test',
+            '--strict' => 123,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+
+        $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString("'strict' supports values within range 0-2", $output);
+    }
+
+    public function testExecuteWithBothStrictAndLockOnlyOptionsSet(): void
+    {
+        $this->commandTester->execute([
+            'command' => $this->command->getName(),
+            FindAndUploadFilesCommand::ARGUMENT_USERNAME => $_ENV['DEBRICKED_USERNAME'],
+            FindAndUploadFilesCommand::ARGUMENT_PASSWORD => $_ENV['DEBRICKED_PASSWORD'],
+            FindAndUploadFilesCommand::ARGUMENT_BASE_DIRECTORY => 'test',
+            '--strict' => FileGroupFinder::STRICT_PAIRS,
+            '--lockfile' => null,
+        ]);
+
+        $output = $this->commandTester->getDisplay();
+
+        $this->assertEquals(1, $this->commandTester->getStatusCode(), $output);
+        $this->assertStringContainsString("'lockfile' and 'strict' flags are mutually exclusive", $output);
     }
 }
