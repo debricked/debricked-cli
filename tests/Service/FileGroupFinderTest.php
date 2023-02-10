@@ -83,4 +83,52 @@ class FileGroupFinderTest extends TestCase
         $lockFile = $fileGroup->getLockFiles()[0];
         $this->assertInstanceOf(\SplFileInfo::class, $lockFile);
     }
+
+    /**
+     * @dataProvider findWithStrictOptionProvider
+     */
+    public function testFindWithStrictOption(
+        int $strictness,
+        int $expectedNumberOfGroups,
+        bool $manifestFileRequired,
+        bool $lockFilesRequired
+    ): void {
+        $fileGroups = FileGroupFinder::find($this->apiMock, getcwd(), true, ['vendor', 'bin'], false, $strictness);
+
+        $this->assertCount($expectedNumberOfGroups, $fileGroups);
+
+        foreach ($fileGroups as $fileGroup) {
+            if ($manifestFileRequired) {
+                $this->assertNotEmpty($fileGroup->getDependencyFile());
+            }
+
+            if ($lockFilesRequired) {
+                $this->assertNotEmpty($fileGroup->getLockFiles());
+            }
+        }
+    }
+
+    public function findWithStrictOptionProvider(): array
+    {
+        return [
+            'strict=0' => [
+                'strictness' => 0,
+                'expectedNumberOfGroups' => 10,
+                'manifestFileRequired' => false,
+                'lockFilesRequired' => false,
+            ],
+            'strict=1' => [
+                'strictness' => 1,
+                'expectedNumberOfGroups' => 6,
+                'manifestFileRequired' => false,
+                'lockFilesRequired' => true,
+            ],
+            'strict=2' => [
+                'strictness' => 2,
+                'expectedNumberOfGroups' => 4,
+                'manifestFileRequired' => true,
+                'lockFilesRequired' => true,
+            ],
+        ];
+    }
 }
