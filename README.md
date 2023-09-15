@@ -51,14 +51,6 @@ However, this requires you to perform certain steps as a part of your pipeline.
 
 To learn more, visit our documentation about [source-codeless scans](https://debricked.com/documentation/language-support/java-kotlin.html#source-codeless-scans) to get further instructions.
 
-### If you have an on-premise solution
-
-For customers with a deployed on-premise solution, you also need to modify the destination server. You can do this by setting the `DEBRICKED_API_URI` environmental variable to your own server, as in the example command below:
-
-```
-docker run -it --rm -e DEBRICKED_API_URI=https://your.on.prem.server -v $PWD:/data debricked/debricked-cli debricked:scan user@example.com password myrepository mycommit null cli
-```
-
 ## Code contributions
 
 ### Build image for running the tool
