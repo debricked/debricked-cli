@@ -112,6 +112,12 @@ class CompoundCommand extends FindAndUploadFilesCommand
             ];
         $checkScanInput = new ArrayInput($checkScanArguments);
         $checkScanReturnCode = $checkScanCommand->run($checkScanInput, $output);
+
+        $io->newLine(3);
+        $io->warning('You are using the legacy CLI which is deprecated. ' .
+            'Please upgrade to https://github.com/debricked/cli as soon as possible.');
+        $io->newLine(3);
+
         if ($checkScanReturnCode !== 0) {
             return 2;
         }

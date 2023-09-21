@@ -17,6 +17,10 @@
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/commandlinetools
+.idea/GitlabLint.xml
+.idea/phpspec.xml
+.idea/phpunit.xml
+.idea/codeception.xml
 
 # Generated files
 .idea/**/contentModel.xml

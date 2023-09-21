@@ -239,7 +239,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
         $this->assertStringContainsString('* .debricked-gradle-dependencies.txt', $output);
         $this->assertMatchesRegularExpression("/For more info: https:\/\/.*debricked\.com\/docs\/language-support/", $output);
-        $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
+        $this->assertStringContainsString("to track the vulnerability scan\n", $output);
     }
 
     public function testCompleteFileGroup(): void
@@ -267,7 +267,7 @@ class FindAndUploadFilesCommandTest extends KernelTestCase
         $this->assertStringNotContainsString('Make sure to generate at least one of the following prior to scanning:', $output);
         $this->assertStringNotContainsString('For more info: https://debricked.com/docs/language-support', $output);
         $this->assertDoesNotMatchRegularExpression("/For more info: https:\/\/.*debricked\.com\/docs\/language-support/", $output);
-        $this->assertStringEndsWith("to track the vulnerability scan\n", $output);
+        $this->assertStringContainsString("to track the vulnerability scan\n", $output);
     }
 
     public function testUploadAllFiles()
