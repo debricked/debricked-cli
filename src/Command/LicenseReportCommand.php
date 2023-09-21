@@ -189,6 +189,11 @@ class LicenseReportCommand extends Command
             $io->write($reportData);
         }
 
+        $io->newLine(3);
+        $io->warning('You are using the legacy CLI which is deprecated. ' .
+            'Please upgrade to https://github.com/debricked/cli as soon as possible.');
+        $io->newLine(3);
+
         return 0;
     }
 

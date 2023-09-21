@@ -25,9 +25,6 @@
       <path value="$PROJECT_DIR$/vendor/phpstan/phpstan" />
       <path value="$PROJECT_DIR$/vendor/phpstan/phpstan-symfony" />
       <path value="$PROJECT_DIR$/vendor/phpstan/phpstan-phpunit" />
-      <path value="$PROJECT_DIR$/vendor/doctrine/annotations" />
-      <path value="$PROJECT_DIR$/vendor/doctrine/lexer" />
-      <path value="$PROJECT_DIR$/vendor/php-cs-fixer/diff" />
       <path value="$PROJECT_DIR$/vendor/psr/event-dispatcher" />
       <path value="$PROJECT_DIR$/vendor/psr/log" />
       <path value="$PROJECT_DIR$/vendor/symfony/finder" />
@@ -59,12 +56,45 @@
       <path value="$PROJECT_DIR$/vendor/symfony/yaml" />
       <path value="$PROJECT_DIR$/vendor/symfony/console" />
       <path value="$PROJECT_DIR$/vendor/bin/.phpunit" />
+      <path value="$PROJECT_DIR$/vendor/psr/simple-cache" />
+      <path value="$PROJECT_DIR$/vendor/symfony/contracts" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpunit/phpunit-mock-objects" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpunit/php-token-stream" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpunit/php-file-iterator" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpunit/php-text-template" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpunit/php-timer" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/diff" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/version" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/resource-operations" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/webmozart/assert" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/code-unit-reverse-lookup" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpdocumentor/reflection-common" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/doctrine/instantiator" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpdocumentor/reflection-docblock" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpdocumentor/type-resolver" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpunit/php-code-coverage" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/symfony/polyfill-ctype" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phar-io/manifest" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phpspec/prophecy" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/phar-io/version" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/composer" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/object-enumerator" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/object-reflector" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/exporter" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/recursion-context" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/comparator" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/theseer/tokenizer" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/environment" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/sebastian/global-state" />
+      <path value="$PROJECT_DIR$/bin/.phpunit/phpunit-6.5/vendor/symfony/phpunit-bridge" />
+      <path value="$PROJECT_DIR$/vendor/sebastian/diff" />
     </include_path>
   </component>
   <component name="PhpInterpreters">
     <interpreters>
-      <interpreter id="32ff5f21-5618-48fb-9b7f-2e1cea8d8883" name="debricked-cli-dev:latest" home="docker://DATA" debugger_id="php.debugger.XDebug">
-        <remote_data INTERPRETER_PATH="php" HELPERS_PATH="/opt/.phpstorm_helpers" INITIALIZED="false" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" DOCKER_ACCOUNT_NAME="Docker" DOCKER_IMAGE_NAME="debricked-cli-dev:latest" DOCKER_REMOTE_PROJECT_PATH="/opt/project" />
+      <interpreter id="32ff5f21-5618-48fb-9b7f-2e1cea8d8883" name="debricked-cli-dev:latest" home="docker://DATA" auto="false" debugger_id="php.debugger.XDebug">
+        <remote_data INTERPRETER_PATH="php" HELPERS_PATH="/opt/.phpstorm_helpers" VALID="true" RUN_AS_ROOT_VIA_SUDO="false" DOCKER_ACCOUNT_NAME="Docker" DOCKER_IMAGE_NAME="debricked-cli-dev:latest" DOCKER_REMOTE_PROJECT_PATH="/opt/project" />
       </interpreter>
     </interpreters>
   </component>
@@ -134,5 +164,8 @@
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/bin/phpunit" phpunit_phar_path="$PROJECT_DIR$/bin/phpunit" />
       <phpunit_by_interpreter interpreter_id="32ff5f21-5618-48fb-9b7f-2e1cea8d8883" load_method="PHPUNIT_PHAR" configuration_file_path="/home/phpunit.xml.dist" custom_loader_path="/home/vendor/autoload.php" phpunit_phar_path="/home/vendor/bin/simple-phpunit" use_configuration_file="true" />
     </phpunit_settings>
+  </component>
+  <component name="PsalmOptionsConfiguration">
+    <option name="transferred" value="true" />
   </component>
 </project>
